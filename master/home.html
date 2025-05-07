@@ -1,0 +1,122 @@
+<body >
+   <div class="pageBody">
+    <div style="width: 100%; height: 100%; background-color:rgb(216, 216, 39); display: flex; align-items: center; justify-content: center; top: 0;" >
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>My Portfolio</title>
+            <style>
+                body {
+                    font-family: Arial, sans-serif;
+                    margin: 0;
+                    padding: 0;
+                    background-color: #f4f4f4;
+                    color: #333;
+                }
+
+                .container {
+                    max-width: 800px;
+                    margin: 20px auto;
+                    padding: 20px;
+                    background-color: #fff;
+                    border-radius: 5px;
+                    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+                }
+                .project {
+                    margin-bottom: 20px;
+                }
+                .project img {
+                    max-width: 100%;
+                    border-radius: 5px;
+                }
+                footer {
+                    background-color: #333;
+                    color: #fff;
+                    text-align: center;
+                    padding: 10px 0;
+                    position: fixed;
+                    bottom: 0;
+                    width: 100%;
+                }
+            </style>
+        </head>
+
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Interactive Quiz</title>
+            <style>
+                body {
+                    font-family: Arial, sans-serif;
+                    margin: 0;
+                    padding: 0;
+                    background-color: #f4f4f4;
+                    color: #333;
+                }
+                #quiz {
+                    margin-top: 20px;
+                }
+                #quiz h2 {
+                    margin-bottom: 10px;
+                }
+                #quiz .question {
+                    margin-bottom: 20px;
+                }
+                #quiz .question p {
+                    margin: 5px 0;
+                }
+                #quiz input[type="radio"] {
+                    margin-right: 5px;
+                }
+                #result {
+                    margin-top: 20px;
+                    font-weight: bold;
+                }
+
+            </style>
+        </head>
+        <body>
+
+        
+            <div class="container" id="quiz">
+                <div class="question">
+                    <h2>Question 1</h2>
+                    <p>What is the capital of France?</p>
+                    <input type="radio" name="q1" value="paris"> Paris<br>
+                    <input type="radio" name="q1" value="london"> London<br>
+                    <input type="radio" name="q1" value="berlin"> Berlin<br>
+                </div>
+                <div class="question">
+                    <h2>Question 2</h2>
+                    <p>Who wrote "Romeo and Juliet"?</p>
+                    <input type="radio" name="q2" value="shakespeare"> William Shakespeare<br>
+                    <input type="radio" name="q2" value="dickens"> Charles Dickens<br>
+                    <input type="radio" name="q2" value="twain"> Mark Twain<br>
+                </div>
+        
+                <button onclick="checkAnswers()">Submit Answers</button>
+                <div id="result"></div>
+            </div>   
+            <script>
+                function checkAnswers() {
+                    var score = 0;
+                    var q1Answer = document.querySelector('input[name="q1"]:checked').value;
+                    var q2Answer = document.querySelector('input[name="q2"]:checked').value;
+        
+                    if (q1Answer === "paris") {
+                        score++;
+                    }
+                    if (q2Answer === "shakespeare") {
+                        score++;
+                    }
+        
+                    var resultDisplay = document.getElementById('result');
+                    resultDisplay.innerHTML = "You scored " + score + " out of 2.";
+                }
+            </script>
+        
+    </div>
+   </div>
+</body>

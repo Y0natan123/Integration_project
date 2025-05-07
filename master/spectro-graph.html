@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Spectrophotometer Data</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: rgb(174, 137, 209);
+        }
+        .chart-container {
+            position: relative;
+            width: 80vw;
+            height: 80vh;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="chart-container">
+        <canvas id="spectroChart"></canvas>
+    </div>
+
+    <script>
+        // Get task ID from URL parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        const taskId = urlParams.get('taskId');
+        
+        if (!taskId) {
+            document.body.innerHTML = '<div style="color: red; text-align: center; padding: 20px;">Error: No task ID provided. Please add ?taskId=X to the URL.</div>';
+            throw new Error('No task ID provided');
+        }
+
+        async function fetchData() {
+            const response = await fetch(`http://localhost:8000/api/tasks/${taskId}/data`);
+            if (!response.ok) {
+                throw new Error(`Failed to fetch data: ${response.statusText}`);
+            }
+            const data = await response.json();
+            return data;
+        }
+
+        async function createChart() {
+            try {
+                const data = await fetchData();
+                console.log('Fetched data:', data);  // Debug log
+                
+                if (!data || data.length === 0) {
+                    document.body.innerHTML = '<div style="color: red; text-align: center; padding: 20px;">No data available for this task.</div>';
+                    return;
+                }
+                
+                // Process data for the chart
+                const wavelengths = [...new Set(data.map(item => item.wavelength))].sort((a, b) => a - b);
+                const timePoints = [...new Set(data.map(item => item.time_point))].sort((a, b) => a - b);
+                
+                console.log('Wavelengths:', wavelengths);  // Debug log
+                console.log('Time points:', timePoints);  // Debug log
+                
+                const datasets = wavelengths.map(wavelength => ({
+                    label: `${wavelength}nm`,
+                    data: timePoints.map(time => {
+                        const point = data.find(d => d.wavelength === wavelength && d.time_point === time);
+                        return point ? point.absorbance : null;
+                    }),
+                    borderWidth: 1,
+                    fill: false
+                }));
+
+                const ctx = document.getElementById('spectroChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: timePoints.map(t => `${t} minutes`),
+                        datasets: datasets
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Absorbance'
+                                }
+                            },
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Time (minutes)'
+                                }
+                            }
+                        },
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: 'Spectrophotometer Measurements Over Time'
+                            },
+                            legend: {
+                                position: 'right',
+                                labels: {
+                                    boxWidth: 20
+                                }
+                            }
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error('Error creating chart:', error);
+                document.body.innerHTML = `<div style="color: red; text-align: center; padding: 20px;">Error: ${error.message}</div>`;
+            }
+        }
+
+        createChart();
+    </script>
+</body>
+</html>

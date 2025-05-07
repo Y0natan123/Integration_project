@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="master.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
+    
+</head>
+<body >
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <header style="z-index: 1;">
+        <img src="" alt="">
+        <nav>
+            <ul class="nav-links">
+                <li class="name"></il>
+                <li><a class="home" >home</a></il>
+                <li><a class="privet" >Admain</a></li>
+                <li><a class="spectro-graph">Measurements</a></li>
+            </ul>
+        </nav>
+        <button class="button">log/reg</button>
+        <button class="loged">logout</button>
+    </header>
+
+    <div class="wrapper">
+        <span class="icon-close"><ion-icon name="close-outline"></ion-icon></span>
+        <div class="form-box login">
+            <h2>Login</h2>
+            <form action="#">
+              
+                <input type="email" class="input-box" id="lemail" placeholder="Email" required >
+                
+            
+            
+                <input type="password" class="input-box" id="lpassword" placeholder="Password" required>
+
+                
+                <div class="login-register">
+                    <p>dont have a count <a href="#" class="register-link">register</a></p>
+                </div>
+                <input type="submit" class="btnLogin" value="Login">
+            </form>
+        </div>
+        <div class="form-box register">
+            <h2>Register</h2>
+            <form action="">
+                
+                <input type="email" class="input-box" id="remail"  placeholder="Email" required >
+            
+                <input type="password" class="input-box" id="rpassword" placeholder="Password" required>
+
+            
+                <input type="date" class="input-box" id="Birthday" placeholder="Birthday"  required>
+            
+                <div class="login-register">
+                    <p>I have a count <a href="#" class="login-link">login</a></p>
+                </div>
+                <input type="submit" class="btnRegister " value="Register">
+            </form>
+        </div>
+    </div>
+    
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+    <div id="navbar-placeholder" style="width: 100%; height: 100%;"></div>
+    <script>
+        
+        $(function(){
+            $("#navbar-placeholder").load( "home.html");
+        });
+    </script>
+    <script src="master.js"></script>
+</body>
+</html>

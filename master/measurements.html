@@ -1,0 +1,410 @@
+<div class="measurements-container">
+    <style>
+        .measurements-container {
+            width: 100%;
+            height: calc(100vh - 70px);
+            background-color: rgb(174, 137, 209);
+            overflow: hidden;
+        }
+        
+        .dashboard {
+            display: flex;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .task-sidebar {
+            width: 300px;
+            background-color: #f5f5f5;
+            border-right: 1px solid #ddd;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        
+        .content-area {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        
+        .task-item {
+            padding: 15px;
+            background-color: white;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            cursor: pointer;
+            position: relative;
+        }
+        
+        .task-item:hover {
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+        
+        .task-item.selected {
+            border: 2px solid #2196F3;
+        }
+        
+        .task-details {
+            margin-bottom: 10px;
+        }
+        
+        .task-name {
+            font-weight: bold;
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+        
+        .task-params {
+            color: #666;
+            font-size: 12px;
+        }
+        
+        .task-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+        }
+        
+        .toggle-button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .toggle-button.inactive {
+            background-color: #f44336;
+        }
+        
+        .add-task-btn {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            background-color: #2196F3;
+            color: white;
+            text-align: center;
+            border: none;
+            border-radius: 8px;
+            margin: 20px 0;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        
+        .add-task-btn:hover {
+            background-color: #0b7dda;
+        }
+        
+        .task-form {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        
+        .form-actions button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .save-btn {
+            background-color: #4CAF50;
+            color: white;
+        }
+        
+        .cancel-btn {
+            background-color: #f44336;
+            color: white;
+        }
+        
+        .chart-container {
+            width: 100%;
+            height: 500px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 20px;
+            position: relative;
+        }
+
+        h1, h2, h3 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .content-area h1 {
+            margin-top: 0;
+        }
+
+        .view-controls {
+            display: flex;
+            margin-bottom: 15px;
+        }
+        
+        .view-btn {
+            padding: 10px 20px;
+            background-color: #f0f0f0;
+            border: 1px solid #ddd;
+            border-bottom: none;
+            cursor: pointer;
+            font-weight: bold;
+            border-radius: 8px 8px 0 0;
+            margin-right: 5px;
+        }
+        
+        .view-btn.active {
+            background-color: white;
+            border-bottom: 2px solid white;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .view-section {
+            display: none;
+        }
+        
+        .view-section.active {
+            display: block;
+        }
+        
+        /* Styles for both chart types */
+        .chart-container {
+            width: 100%;
+            height: 500px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 20px;
+            position: relative;
+        }
+        
+        /* Spectrum chart specific styles */
+        #spectrum-view {
+            background-color: white;
+        }
+        
+        #spectrum-view canvas {
+            max-height: 450px;
+        }
+        
+        /* Title for the spectrum chart */
+        .spectrum-title {
+            text-align: center;
+            font-style: italic;
+            margin-bottom: 15px;
+            color: #444;
+        }
+        
+        /* Data table styles */
+        .data-table-wrapper {
+            max-height: 500px;
+            overflow-y: auto;
+            border-radius: 8px;
+            background-color: white;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        #absorbance-data-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: center;
+        }
+        
+        #absorbance-data-table th, #absorbance-data-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+        
+        #absorbance-data-table th {
+            background-color: #f8f8f8;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        
+        #absorbance-data-table tr:nth-child(even) {
+            background-color: #f5f5f5;
+        }
+        
+        #absorbance-data-table td {
+            font-family: monospace;
+        }
+
+        /* Add these styles for status indicators */
+        .status-indicator {
+            margin-top: 8px;
+            font-size: 12px;
+            color: #555;
+            display: flex;
+            align-items: center;
+        }
+
+        .status-indicator.warning {
+            color: #ff9800;
+        }
+
+        .status-indicator.error {
+            color: #f44336;
+        }
+
+        .pulse {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #ccc;
+            margin-right: 6px;
+            position: relative;
+        }
+
+        .pulse.active {
+            background-color: #4CAF50;
+        }
+
+        .pulse.inactive {
+            background-color: #f44336;
+        }
+
+        .pulse.active:before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background-color: rgba(76, 175, 80, 0.4);
+            animation: pulse 1.5s ease-out infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(3);
+                opacity: 0;
+            }
+        }
+
+        /* Excel download button style */
+        .download-btn {
+            margin-left: auto;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        .download-btn:hover {
+            background-color: #3e8e41;
+        }
+    </style>
+
+    <div class="dashboard">
+        <div class="task-sidebar">
+            <h2>Measurement Tasks</h2>
+            <button class="add-task-btn" id="add-task-btn">+ Add New Task</button>
+            
+            <!-- Task form (hidden by default) -->
+            <div class="task-form" id="task-form">
+                <h3>New Measurement Task</h3>
+                <div class="form-group">
+                    <label for="task-name">Task Name</label>
+                    <input type="text" id="task-name" placeholder="Enter task name">
+                </div>
+                <div class="form-group">
+                    <label for="measurement-interval">Measurement Interval (minutes)</label>
+                    <input type="number" id="measurement-interval" placeholder="Enter measurement interval">
+                </div>
+                <div class="form-group">
+                    <label for="wavelength-start">Wavelength Start (nm)</label>
+                    <input type="number" id="wavelength-start" placeholder="Enter start wavelength">
+                </div>
+                <div class="form-group">
+                    <label for="wavelength-end">Wavelength End (nm)</label>
+                    <input type="number" id="wavelength-end" placeholder="Enter end wavelength">
+                </div>
+                <div class="form-group">
+                    <label for="wavelength-step">Wavelength Step (nm)</label>
+                    <input type="number" id="wavelength-step" placeholder="Enter wavelength increment">
+                </div>
+                <div class="form-actions">
+                    <button class="cancel-btn" id="cancel-btn">Cancel</button>
+                    <button class="save-btn" id="save-task-btn">Save Task</button>
+                </div>
+            </div>
+            
+            <!-- Task list (will be populated from JS) -->
+            <div id="task-list"></div>
+        </div>
+        
+        <div class="content-area">
+            <h1>Spectrophotometer Measurements</h1>
+            
+            <div class="view-controls">
+                <button class="view-btn active" data-view="chart">Chart View</button>
+                <button class="view-btn" data-view="spectrum">Spectrum View</button>
+                <button class="view-btn" data-view="table">Raw Data Table</button>
+                <button id="download-excel-btn" class="download-btn">Download Excel</button>
+            </div>
+            
+            <div class="chart-container view-section active" id="chart-view">
+                <canvas id="spectroChart"></canvas>
+            </div>
+            
+            <div class="chart-container view-section" id="spectrum-view">
+                <canvas id="spectrumChart"></canvas>
+            </div>
+            
+            <div class="table-container view-section" id="table-view">
+                <div class="data-table-wrapper">
+                    <table id="absorbance-data-table">
+                        <thead>
+                            <tr id="time-header-row">
+                                <th>wavelength<br>(nm) \ Time (min)</th>
+                                <!-- Time headers will be inserted here by JS -->
+                            </tr>
+                        </thead>
+                        <tbody id="absorbance-data-body">
+                            <!-- Table rows will be inserted here by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div> 

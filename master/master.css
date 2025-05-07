@@ -1,0 +1,263 @@
+*{
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    
+}
+#navbar-placeholder{
+    width: 100%;
+    height: 100%;
+    display: fixed;
+    top: 70px;
+
+}
+.pageBody{
+    width: 100%;
+    height: 100%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+}
+body{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 33.2vh;
+    background-color: rgb(174, 137, 209);
+}
+header{
+    position:fixed;
+    height: 70px;
+    top: 0;
+    width: 100%;
+    background-color: rgb(0, 0, 0);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0px 7%;
+    z-index: 3;
+}
+
+.nav-links{
+    list-style: none;
+}
+ 
+.nav-links li{
+    display: inline-block;
+    padding: 0px 30px;
+}
+
+.nav-links li a{
+    position: relative;
+    font-family:'poppins',sans-serif;
+    color: rgb(255, 255, 255);
+    text-decoration: none;
+    font-size: 20px;
+    cursor: pointer;
+
+}
+
+.nav-links a::after{
+    content: '';
+    position:absolute;
+    width: 100%;
+    bottom: -4px;
+    left: 0;
+    height: 3px;
+    background: #ffffff;
+    border-radius: 5px;
+    transform: scaleX(0);
+    transition: transform .2s;
+
+}
+.nav-links a:hover::after{
+    transform: scaleX(1);
+}
+.privet{
+    display: none;
+}
+.name{
+    margin: 0 0 0 -50px;
+    color: #ffffff;
+    font-size: 25px;
+    font-style: italic; /* Italicize the text */
+    font-weight: bold; /* Make the text bold */
+
+}
+.button{
+    width: 120px;
+    height: 39px;
+    border: 2px solid rgb(71, 71, 71);
+    background-color: rgb(90, 90, 90);
+    border-radius: 10px;
+    transition: .2s;
+    font-size: 19px;
+    color: aliceblue;
+    cursor: pointer;
+
+}
+.button:hover{
+    background-color: rgb(168, 168, 168);
+    transition: .2s;
+    font-size: 21px;
+
+}
+
+.loged{
+    display: none;
+
+}
+
+
+
+.wrapper{
+    position: relative;
+    top: 120px;
+    width: 350px;
+    height: 440px;
+    background: transparent;
+    border: 2px solid rgb(255, 255, 255,.5);
+    border-radius: 20px;
+    backdrop-filter: blur(20px);
+    box-shadow: 0 0  40px rgba(0, 0 ,0 , .5);
+    display:flex;
+    justify-content: center;
+    overflow: hidden;
+    align-items: center;
+    z-index: 4;
+    transition: height .2s , transform .2s ease;
+    transform: scale(0);
+
+}
+
+.wrapper.active-popup{
+    transform: scale(1);
+}
+.wrapper.active .form-box.login{
+   display: none;
+}
+
+.wrapper .form-box.register{
+    display: none;
+}
+
+.wrapper.active .form-box.register{
+    display: block;
+}
+
+.wrapper.active {
+    height: 510px;
+}
+
+
+.wrapper .form-box{
+    width: 100px;
+    padding: px;
+}
+
+.form-box.login{
+    width: 70%;
+    height: 90%;
+
+}
+
+.form-box.register{
+    width: 70%;
+    height: 90%;
+
+}
+
+.form-box h2{
+    font-size: 2.5em;
+    color: rgb(71, 71, 115);
+    text-align: center;
+    margin: 40px 0 50px  0;
+    
+}
+
+.input-box{
+    position: relative;
+    width: 100%;
+    height: 21px;
+   
+}
+
+.input-box label{
+    position: absolute;
+    top: 50%;
+    left: 0px;
+    transform: translateY(-50%);
+    font-size: 1em;
+    color: #162938;
+    font-weight: 500;
+    pointer-events: none;
+    transition: .2s;
+}
+.input-box.Birthday label {
+    top:  -9px;
+
+
+}
+
+
+
+.input-box {
+    width: 90%;
+    height: 100%;
+    background: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    outline: none;
+    font-size: 1.2em;
+    border-bottom: 2px solid rgb(255, 255, 255);
+    margin:  40px  0 10px 0 ;
+}
+
+
+.btnRegister,.btnLogin{
+    width: 100%;
+    height: 50px;
+    border-radius: 10px;
+    border: 2px solid #ffffffbd;
+    font-size: 1.5em;
+    font-family:'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+    margin: 70px 0 0 0;
+    background-color: #162938;
+    color: #ffffff;
+    transition: .2s;
+    cursor: pointer;
+
+}
+
+
+.btnRegister:hover,.btnLogin:hover{
+    color: #162938;
+    background-color: #7777ab;
+}
+
+#navbar-placeholder{
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    z-index: 2;
+}
+
+.icon-close{
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 45px;
+    height: 45px;
+    background: #162938;
+    font-size: 2em;
+    color: #ffffff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-bottom-left-radius: 20px;
+    cursor: pointer;
+    z-index: 4;
+}
