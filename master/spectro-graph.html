@@ -3,6 +3,7 @@
 <head>
     <title>Spectrophotometer Data</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body {
             margin: 0;
@@ -23,11 +24,172 @@
             border-radius: 10px;
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
         }
+        /* Legend Toggle Button */
+        .legend-toggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: #fff;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 1000;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+        }
+        .legend-toggle:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+        
+        /* New Popup Styles */
+        .wavelength-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 250px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 25px rgba(0,0,0,0.3);
+            z-index: 10000;
+            display: none;
+            border: 1px solid #ddd;
+            max-height: 80vh;
+            overflow: hidden;
+        }
+        
+        .wavelength-popup.visible,
+        .wavelength-popup.show {
+            display: block;
+        }
+        
+        .popup-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 15px;
+            border-bottom: 1px solid #eee;
+            background-color: #f8f8f8;
+            border-radius: 10px 10px 0 0;
+        }
+        
+        .popup-header h3 {
+            margin: 0;
+            font-size: 16px;
+            color: #333;
+        }
+        
+        .close-popup {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: #666;
+        }
+        
+        .close-popup:hover {
+            color: #f44336;
+        }
+        
+        .popup-content {
+            padding: 15px;
+            max-height: calc(80vh - 50px);
+            overflow-y: auto;
+        }
+        
+        /* Legend Items */
+        .legend-items {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 15px;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+        
+        .legend-item:hover {
+            background-color: #f0f0f0;
+        }
+        
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 0;
+            margin-right: 10px;
+            border: 1px solid #ccc;
+        }
+        
+        .legend-text {
+            font-size: 14px;
+            color: #333;
+        }
+        
+        .legend-item.hidden {
+            opacity: 0.5;
+        }
+        
+        /* Select/Deselect All Button */
+        .legend-controls {
+            display: flex;
+            justify-content: space-between;
+            padding-top: 10px;
+            border-top: 1px solid #eee;
+        }
+        
+        .legend-control-btn {
+            background-color: #f0f8ff;
+            border: 1px solid #ccc;
+            color: #4facfe;
+            cursor: pointer;
+            font-size: 13px;
+            padding: 6px 10px;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+        
+        .legend-control-btn:hover {
+            background-color: #e6f3ff;
+            border-color: #4facfe;
+        }
     </style>
 </head>
 <body>
     <div class="chart-container">
         <canvas id="spectroChart"></canvas>
+        <button class="legend-toggle" id="legendToggle" title="Toggle Wavelength Legend" role="button" tabindex="0">
+            <i class="fas fa-list"></i>
+        </button>
+    </div>
+
+    <!-- Separate wavelength legend popup -->
+    <div id="wavelengthPopup" class="wavelength-popup">
+        <div class="popup-header">
+            <h3>Wavelengths</h3>
+            <button id="closePopup" class="close-popup">&times;</button>
+        </div>
+        <div class="popup-content">
+            <div id="legendItems" class="legend-items">
+                <!-- Legend items will be generated here -->
+            </div>
+            <div class="legend-controls">
+                <button class="legend-control-btn" id="selectAllBtn">Select All</button>
+                <button class="legend-control-btn" id="deselectAllBtn">Deselect All</button>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -40,6 +202,10 @@
             throw new Error('No task ID provided');
         }
 
+        // Variables for chart and dataset
+        let chart = null;
+        let chartData = null;
+
         async function fetchData() {
             const response = await fetch(`http://localhost:8000/api/tasks/${taskId}/data`);
             if (!response.ok) {
@@ -49,35 +215,66 @@
             return data;
         }
 
+        // Function to generate a color based on wavelength
+        function getColorForWavelength(wavelength) {
+            // Match colors to the specific wavelengths in the image
+            if (wavelength === 400) return 'rgb(255, 215, 0)';      // Yellow
+            if (wavelength === 440) return 'rgb(144, 238, 144)';    // Light green
+            if (wavelength === 480) return 'rgb(50, 205, 50)';      // Green
+            if (wavelength === 520) return 'rgb(64, 224, 208)';     // Teal
+            if (wavelength === 560) return 'rgb(135, 206, 250)';    // Light blue
+            if (wavelength === 600) return 'rgb(106, 90, 205)';     // Blue-purple
+            if (wavelength === 640) return 'rgb(147, 112, 219)';    // Purple
+            if (wavelength === 680) return 'rgb(255, 182, 193)';    // Pink
+
+            // Fallback for other wavelengths using approximation
+            if (wavelength < 440) return 'rgb(255, 215, 0)';      // Yellow-ish
+            if (wavelength < 480) return 'rgb(144, 238, 144)';    // Light green
+            if (wavelength < 520) return 'rgb(50, 205, 50)';      // Green
+            if (wavelength < 560) return 'rgb(64, 224, 208)';     // Teal
+            if (wavelength < 600) return 'rgb(135, 206, 250)';    // Light blue
+            if (wavelength < 640) return 'rgb(106, 90, 205)';     // Blue-purple
+            if (wavelength < 680) return 'rgb(147, 112, 219)';    // Purple
+            return 'rgb(255, 182, 193)';                         // Pink
+        }
+
         async function createChart() {
             try {
-                const data = await fetchData();
-                console.log('Fetched data:', data);  // Debug log
+                chartData = await fetchData();
+                console.log('Fetched data:', chartData);  // Debug log
                 
-                if (!data || data.length === 0) {
+                if (!chartData || chartData.length === 0) {
                     document.body.innerHTML = '<div style="color: red; text-align: center; padding: 20px;">No data available for this task.</div>';
                     return;
                 }
                 
                 // Process data for the chart
-                const wavelengths = [...new Set(data.map(item => item.wavelength))].sort((a, b) => a - b);
-                const timePoints = [...new Set(data.map(item => item.time_point))].sort((a, b) => a - b);
+                const wavelengths = [...new Set(chartData.map(item => item.wavelength))].sort((a, b) => a - b);
+                const timePoints = [...new Set(chartData.map(item => item.time_point))].sort((a, b) => a - b);
                 
                 console.log('Wavelengths:', wavelengths);  // Debug log
                 console.log('Time points:', timePoints);  // Debug log
                 
-                const datasets = wavelengths.map(wavelength => ({
-                    label: `${wavelength}nm`,
-                    data: timePoints.map(time => {
-                        const point = data.find(d => d.wavelength === wavelength && d.time_point === time);
-                        return point ? point.absorbance : null;
-                    }),
-                    borderWidth: 1,
-                    fill: false
-                }));
+                const datasets = wavelengths.map(wavelength => {
+                    const color = getColorForWavelength(wavelength);
+                    return {
+                        label: `${wavelength}nm`,
+                        data: timePoints.map(time => {
+                            const point = chartData.find(d => d.wavelength === wavelength && d.time_point === time);
+                            return point ? point.absorbance : null;
+                        }),
+                        borderColor: color,
+                        backgroundColor: color.replace('1)', '0.1)'),
+                        borderWidth: 2,
+                        pointRadius: 3,
+                        fill: false,
+                        tension: 0.1,
+                        hidden: true  // Hide all datasets by default
+                    };
+                });
 
                 const ctx = document.getElementById('spectroChart').getContext('2d');
-                new Chart(ctx, {
+                chart = new Chart(ctx, {
                     type: 'line',
                     data: {
                         labels: timePoints.map(t => `${t} minutes`),
@@ -104,22 +301,138 @@
                         plugins: {
                             title: {
                                 display: true,
-                                text: 'Spectrophotometer Measurements Over Time'
+                                text: 'Spectrophotometer Measurements Over Time',
+                                font: {
+                                    size: 18
+                                },
+                                padding: {
+                                    top: 10,
+                                    bottom: 20
+                                }
                             },
                             legend: {
-                                position: 'right',
-                                labels: {
-                                    boxWidth: 20
-                                }
+                                display: false // Hide default legend
+                            },
+                            tooltip: {
+                                backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                                titleFont: {
+                                    size: 14
+                                },
+                                bodyFont: {
+                                    size: 13
+                                },
+                                padding: 10
                             }
                         }
                     }
                 });
+                
+                // Generate custom legend
+                createCustomLegend(wavelengths);
+                
             } catch (error) {
                 console.error('Error creating chart:', error);
                 document.body.innerHTML = `<div style="color: red; text-align: center; padding: 20px;">Error: ${error.message}</div>`;
             }
         }
+
+        function createCustomLegend(wavelengths) {
+            const legendItems = document.getElementById('legendItems');
+            legendItems.innerHTML = '';
+            
+            wavelengths.forEach(wavelength => {
+                const color = getColorForWavelength(wavelength);
+                
+                const item = document.createElement('div');
+                item.className = 'legend-item hidden'; // Add hidden class by default
+                item.dataset.wavelength = wavelength;
+                
+                const colorBox = document.createElement('div');
+                colorBox.className = 'legend-color';
+                colorBox.style.backgroundColor = color;
+                
+                const text = document.createElement('div');
+                text.className = 'legend-text';
+                text.textContent = `${wavelength}nm`;
+                
+                item.appendChild(colorBox);
+                item.appendChild(text);
+                
+                // Add click event to toggle dataset visibility
+                item.addEventListener('click', () => {
+                    toggleDataset(wavelength, item);
+                });
+                
+                legendItems.appendChild(item);
+            });
+        }
+        
+        function toggleDataset(wavelength, legendItem) {
+            const datasetIndex = chart.data.datasets.findIndex(dataset => dataset.label === `${wavelength}nm`);
+            
+            if (datasetIndex === -1) return;
+            
+            // Toggle visibility
+            const isVisible = chart.isDatasetVisible(datasetIndex);
+            if (isVisible) {
+                chart.hide(datasetIndex);
+                legendItem.classList.add('hidden');
+            } else {
+                chart.show(datasetIndex);
+                legendItem.classList.remove('hidden');
+            }
+        }
+        
+        // Toggle legend panel visibility
+        document.getElementById('legendToggle').addEventListener('click', (e) => {
+            console.log('Legend toggle clicked in spectro-graph'); // Debugging log
+            e.stopPropagation(); // Prevent event bubbling
+            const popup = document.getElementById('wavelengthPopup');
+            popup.classList.add('visible');
+        });
+        
+        // Close popup button
+        document.getElementById('closePopup').addEventListener('click', () => {
+            const popup = document.getElementById('wavelengthPopup');
+            popup.classList.remove('visible');
+        });
+        
+        // Close the popup when clicking outside of it
+        document.addEventListener('click', (e) => {
+            const popup = document.getElementById('wavelengthPopup');
+            const toggle = document.getElementById('legendToggle');
+            if (popup && popup.classList.contains('visible') && 
+                !popup.contains(e.target) && 
+                e.target !== toggle) {
+                popup.classList.remove('visible');
+            }
+        });
+        
+        // Select all datasets
+        document.getElementById('selectAllBtn').addEventListener('click', () => {
+            chart.data.datasets.forEach((dataset, index) => {
+                chart.show(index);
+            });
+            
+            document.querySelectorAll('.legend-item').forEach(item => {
+                item.classList.remove('hidden');
+            });
+            
+            chart.update();
+        });
+        
+        // Deselect all datasets
+        document.getElementById('deselectAllBtn').addEventListener('click', () => {
+            chart.data.datasets.forEach((dataset, index) => {
+                chart.hide(index);
+            });
+            
+            document.querySelectorAll('.legend-item').forEach(item => {
+                item.classList.add('hidden');
+            });
+            
+            chart.update();
+        });
 
         createChart();
     </script>

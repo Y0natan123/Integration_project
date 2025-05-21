@@ -1,0 +1,6 @@
+@echo off
+echo Running server accessibility test...
+node server-test.js
+echo.
+echo Starting server with external access...
+node start-server.js 

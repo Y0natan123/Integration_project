@@ -332,8 +332,150 @@
         .download-btn:hover {
             background-color: #3e8e41;
         }
-    </style>
 
+        /* Legend Toggle Button */
+        .legend-toggle {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: #fff;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 1000;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+        }
+        .legend-toggle:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+        
+        /* New Popup Styles */
+        .wavelength-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 250px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 25px rgba(0,0,0,0.3);
+            z-index: 10000;
+            display: none;
+            border: 1px solid #ddd;
+            max-height: 80vh;
+            overflow: hidden;
+        }
+
+        .wavelength-popup.visible,
+        .wavelength-popup.show {
+            display: block;
+        }
+
+        .popup-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 15px;
+            border-bottom: 1px solid #eee;
+            background-color: #f8f8f8;
+            border-radius: 10px 10px 0 0;
+        }
+
+        .popup-header h3 {
+            margin: 0;
+            font-size: 16px;
+            color: #333;
+        }
+
+        .close-popup {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: #666;
+        }
+
+        .close-popup:hover {
+            color: #f44336;
+        }
+
+        .popup-content {
+            padding: 15px;
+            max-height: calc(80vh - 50px);
+            overflow-y: auto;
+        }
+
+        /* Legend Items */
+        .legend-items {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 15px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+
+        .legend-item:hover {
+            background-color: #f0f0f0;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 0;
+            margin-right: 10px;
+            border: 1px solid #ccc;
+        }
+
+        .legend-text {
+            font-size: 14px;
+            color: #333;
+        }
+
+        .legend-item.hidden {
+            opacity: 0.5;
+        }
+
+        /* Select/Deselect All Button */
+        .legend-controls {
+            display: flex;
+            justify-content: space-between;
+            padding-top: 10px;
+            border-top: 1px solid #eee;
+        }
+
+        .legend-control-btn {
+            background-color: #f0f8ff;
+            border: 1px solid #ccc;
+            color: #4facfe;
+            cursor: pointer;
+            font-size: 13px;
+            padding: 6px 10px;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .legend-control-btn:hover {
+            background-color: #e6f3ff;
+            border-color: #4facfe;
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <div class="dashboard">
         <div class="task-sidebar">
             <h2>Measurement Tasks</h2>
@@ -382,8 +524,29 @@
                 <button id="download-excel-btn" class="download-btn">Download Excel</button>
             </div>
             
+            <!-- Chart container without the legend panel -->
             <div class="chart-container view-section active" id="chart-view">
                 <canvas id="spectroChart"></canvas>
+                <button class="legend-toggle" id="legendToggle" title="Toggle Wavelength Legend" role="button" tabindex="0">
+                    <i class="fas fa-list"></i>
+                </button>
+            </div>
+            
+            <!-- Separate wavelength legend popup -->
+            <div id="wavelengthPopup" class="wavelength-popup">
+                <div class="popup-header">
+                    <h3>Wavelengths</h3>
+                    <button id="closePopup" class="close-popup">&times;</button>
+                </div>
+                <div class="popup-content">
+                    <div id="legendItems" class="legend-items">
+                        <!-- Legend items will be generated here -->
+                    </div>
+                    <div class="legend-controls">
+                        <button class="legend-control-btn" id="selectAllBtn">Select All</button>
+                        <button class="legend-control-btn" id="deselectAllBtn">Deselect All</button>
+                    </div>
+                </div>
             </div>
             
             <div class="chart-container view-section" id="spectrum-view">

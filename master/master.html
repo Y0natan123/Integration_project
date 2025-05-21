@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="master.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
-    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body >
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -19,6 +19,7 @@
                 <li><a class="home" >home</a></il>
                 <li><a class="privet" >Admain</a></li>
                 <li><a class="spectro-graph">Measurements</a></li>
+                <li><a class="notes-link">Notes</a></li>
             </ul>
         </nav>
         <button class="button">log/reg</button>
@@ -31,7 +32,7 @@
             <h2>Login</h2>
             <form action="#">
               
-                <input type="email" class="input-box" id="lemail" placeholder="Email" required >
+                <input type="text" class="input-box" id="lname" placeholder="Name" required >
                 
             
             
@@ -48,12 +49,12 @@
             <h2>Register</h2>
             <form action="">
                 
-                <input type="email" class="input-box" id="remail"  placeholder="Email" required >
+                <input type="text" class="input-box" id="rname" placeholder="Name" required >
             
                 <input type="password" class="input-box" id="rpassword" placeholder="Password" required>
 
             
-                <input type="date" class="input-box" id="Birthday" placeholder="Birthday"  required>
+                <input type="date" class="input-box" id="Birthday" placeholder="Birthday" required>
             
                 <div class="login-register">
                     <p>I have a count <a href="#" class="login-link">login</a></p>
@@ -69,7 +70,7 @@
     <script>
         
         $(function(){
-            $("#navbar-placeholder").load( "home.html");
+            $("#navbar-placeholder").load("home.html");
         });
     </script>
     <script src="master.js"></script>

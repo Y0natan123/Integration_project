@@ -1,0 +1,870 @@
+<div class="notes-container">
+    <style>
+        .notes-container {
+            width: 100%;
+            height: calc(100vh - 70px);
+            background-color: rgb(174, 137, 209);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .notes-header {
+            background-color: white;
+            padding: 20px;
+            margin: 20px 20px 0 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .notes-header h1 {
+            margin: 0;
+            color: #333;
+        }
+        
+        .filter-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .filter-dropdown {
+            padding: 8px 12px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            background-color: white;
+        }
+        
+        .search-input {
+            padding: 8px 12px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            width: 200px;
+        }
+        
+        .notes-content {
+            flex: 1;
+            padding: 0 20px 20px 20px;
+            overflow-y: auto;
+            margin-top: 20px;
+        }
+        
+        .tasks-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        
+        .task-card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 15px;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .task-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+        
+        .task-card.selected {
+            border: 2px solid #2196F3;
+            box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.3);
+            padding: 13px; /* Adjust for the border */
+        }
+        
+        .task-name {
+            font-weight: bold;
+            font-size: 16px;
+            margin-bottom: 8px;
+            color: #333;
+        }
+        
+        .task-meta {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        
+        .task-interval {
+            color: #666;
+            font-size: 12px;
+        }
+        
+        .task-status {
+            font-size: 12px;
+            padding: 2px 8px;
+            border-radius: 12px;
+            text-align: center;
+        }
+        
+        .task-status.active {
+            background-color: #e6f4ea;
+            color: #137333;
+        }
+        
+        .task-status.inactive {
+            background-color: #f8f9fa;
+            color: #666;
+        }
+        
+        .task-notes-count {
+            font-size: 12px;
+            color: #888;
+            margin-top: 8px;
+        }
+        
+        .add-note-btn {
+            position: absolute;
+            bottom: 12px;
+            right: 12px;
+            width: 30px;
+            height: 30px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            font-size: 20px;
+            line-height: 28px;
+            text-align: center;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            transition: all 0.2s ease;
+        }
+        
+        .add-note-btn:hover {
+            background-color: #388E3C;
+            transform: scale(1.1);
+        }
+        
+        .note-form {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        .note-form textarea {
+            width: 100%;
+            min-height: 100px;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            resize: vertical;
+        }
+        
+        .note-form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        
+        .note-form-actions button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .save-note-btn {
+            background-color: #4CAF50;
+            color: white;
+        }
+        
+        .cancel-note-btn {
+            background-color: #f44336;
+            color: white;
+        }
+        
+        .note-card {
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: relative;
+        }
+        
+        .note-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        
+        .note-date {
+            font-size: 12px;
+            color: #777;
+        }
+        
+        .note-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .note-actions button {
+            border: none;
+            background: none;
+            cursor: pointer;
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .delete-note {
+            color: #f44336;
+        }
+        
+        .edit-note {
+            color: #2196F3;
+        }
+        
+        .note-content {
+            font-size: 14px;
+            line-height: 1.5;
+            color: #333;
+        }
+        
+        .no-notes-message {
+            text-align: center;
+            color: #666;
+            margin-top: 50px;
+        }
+        
+        .no-tasks-message {
+            text-align: center;
+            color: #666;
+            margin-top: 50px;
+            grid-column: 1 / -1;
+            padding: 40px;
+            background-color: white;
+            border-radius: 8px;
+        }
+        
+        .notes-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 1000;
+            overflow-y: auto;
+            padding: 50px 0;
+        }
+        
+        .modal-content {
+            background-color: white;
+            border-radius: 8px;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+        }
+        
+        .modal-header {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .modal-header h2 {
+            margin: 0;
+            color: #333;
+        }
+        
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+        }
+        
+        .modal-body {
+            max-height: 70vh;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+        
+        .notification-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10000;
+        }
+        
+        .notification {
+            padding: 15px 20px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            min-width: 300px;
+            max-width: 400px;
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        .notification.success {
+            background-color: #4CAF50;
+        }
+        
+        .notification.error {
+            background-color: #f44336;
+        }
+        
+        .notification.info {
+            background-color: #2196F3;
+        }
+        
+        .close-notification {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+        
+        .loading-spinner {
+            display: inline-block;
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(0,0,0,0.1);
+            border-radius: 50%;
+            border-top-color: #2196F3;
+            animation: spin 1s ease-in-out infinite;
+            margin: 50px auto;
+            display: block;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+    </style>
+    
+    <div class="notes-header">
+        <h1>Measurement Tasks & Notes</h1>
+        <div class="filter-controls">
+            <input type="text" class="search-input" id="search-tasks" placeholder="Search tasks...">
+            <select class="filter-dropdown" id="status-filter">
+                <option value="all">All Status</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+            </select>
+        </div>
+    </div>
+    
+    <div class="notes-content">
+        <div class="tasks-grid" id="tasks-grid">
+            <!-- Tasks will be loaded dynamically -->
+            <div class="loading-spinner"></div>
+        </div>
+        </div>
+        
+    <!-- Notes Modal -->
+    <div class="notes-modal" id="notes-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-task-name">Task Notes</h2>
+                <button class="close-modal" id="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+            <!-- Note form for adding/editing notes -->
+            <div class="note-form" id="note-form">
+                <textarea id="note-text" placeholder="Enter your note here..."></textarea>
+                <div class="note-form-actions">
+                    <button class="cancel-note-btn" id="cancel-note-btn">Cancel</button>
+                    <button class="save-note-btn" id="save-note-btn">Save Note</button>
+                </div>
+            </div>
+            
+            <div id="notes-list">
+                <!-- Notes will be loaded dynamically -->
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let currentTaskId = null;
+        let currentEditingNoteId = null;
+        
+        // Load tasks when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            loadTasks();
+            
+            // Set up event listeners
+            document.getElementById('cancel-note-btn').addEventListener('click', cancelNote);
+            document.getElementById('save-note-btn').addEventListener('click', saveNote);
+            document.getElementById('close-modal').addEventListener('click', closeNotesModal);
+            document.getElementById('search-tasks').addEventListener('input', filterTasks);
+            document.getElementById('status-filter').addEventListener('change', filterTasks);
+            
+            // Close modal when clicking outside the content
+            document.getElementById('notes-modal').addEventListener('click', (e) => {
+                if (e.target === document.getElementById('notes-modal')) {
+                    closeNotesModal();
+                }
+            });
+        });
+        
+        // Close the notes modal
+        function closeNotesModal() {
+            document.getElementById('notes-modal').style.display = 'none';
+            document.getElementById('note-form').style.display = 'none';
+            currentEditingNoteId = null;
+        }
+        
+        // Load all tasks
+        async function loadTasks() {
+            try {
+                const response = await fetch('http://localhost:8000/api/tasks');
+                const tasks = await response.json();
+                
+                const tasksGrid = document.getElementById('tasks-grid');
+                
+                if (tasks.length === 0) {
+                    tasksGrid.innerHTML = '<div class="no-tasks-message">No measurement tasks available</div>';
+                    return;
+                }
+                
+                tasksGrid.innerHTML = '';
+                
+                // Load tasks into the grid
+                tasks.forEach(async (task) => {
+                    // Get note count for each task
+                    let noteCount = 0;
+                    try {
+                        const notesResponse = await fetch(`http://localhost:8000/api/tasks/${task.task_id}/notes`);
+                        if (notesResponse.ok) {
+                            const notes = await notesResponse.json();
+                            noteCount = notes.length;
+                        }
+                    } catch (error) {
+                        console.error(`Error getting notes count for task ${task.task_id}:`, error);
+                    }
+                    
+                    renderTaskCard(task, noteCount);
+                });
+            } catch (error) {
+                console.error('Error loading tasks:', error);
+                document.getElementById('tasks-grid').innerHTML = 
+                    '<div class="no-tasks-message">Error loading measurement tasks</div>';
+            }
+        }
+        
+        // Render a task card in the grid
+        function renderTaskCard(task, noteCount = 0) {
+            const tasksGrid = document.getElementById('tasks-grid');
+            
+            const card = document.createElement('div');
+            card.className = 'task-card';
+            card.setAttribute('data-task-id', task.task_id);
+            card.setAttribute('data-status', task.is_active ? 'active' : 'inactive');
+            card.setAttribute('data-name', task.name || task.task_name || '');
+            
+            const nameEl = document.createElement('div');
+            nameEl.className = 'task-name';
+            nameEl.textContent = task.name || task.task_name || `Task ${task.task_id}`;
+            
+            const metaEl = document.createElement('div');
+            metaEl.className = 'task-meta';
+            
+            const intervalEl = document.createElement('div');
+            intervalEl.className = 'task-interval';
+            intervalEl.textContent = `${task.measurement_interval} min interval`;
+            
+            const statusEl = document.createElement('div');
+            statusEl.className = `task-status ${task.is_active ? 'active' : 'inactive'}`;
+            statusEl.textContent = task.is_active ? 'Active' : 'Inactive';
+            
+            metaEl.appendChild(intervalEl);
+            metaEl.appendChild(statusEl);
+            
+            const notesCountEl = document.createElement('div');
+            notesCountEl.className = 'task-notes-count';
+            notesCountEl.textContent = noteCount === 0 ? 'No notes yet' : 
+                                     noteCount === 1 ? '1 note' : 
+                                     `${noteCount} notes`;
+            
+            const addNoteBtn = document.createElement('button');
+            addNoteBtn.className = 'add-note-btn';
+            addNoteBtn.innerHTML = '+';
+            addNoteBtn.title = 'Add a note';
+            addNoteBtn.onclick = (e) => {
+                e.stopPropagation(); // Prevent selecting task
+                openTaskNotes(task.task_id, task.name || task.task_name || `Task ${task.task_id}`);
+                showNoteForm();
+            };
+            
+            card.appendChild(nameEl);
+            card.appendChild(metaEl);
+            card.appendChild(notesCountEl);
+            card.appendChild(addNoteBtn);
+            
+            card.addEventListener('click', () => {
+                openTaskNotes(task.task_id, task.name || task.task_name || `Task ${task.task_id}`);
+            });
+            
+            tasksGrid.appendChild(card);
+        }
+        
+        // Filter tasks based on search input and status filter
+        function filterTasks() {
+            const searchTerm = document.getElementById('search-tasks').value.toLowerCase();
+            const statusFilter = document.getElementById('status-filter').value;
+            
+            const taskCards = document.querySelectorAll('.task-card');
+            
+            taskCards.forEach(card => {
+                const taskName = card.getAttribute('data-name').toLowerCase();
+                const taskStatus = card.getAttribute('data-status');
+                
+                const matchesSearch = taskName.includes(searchTerm);
+                const matchesStatus = statusFilter === 'all' || statusFilter === taskStatus;
+                
+                if (matchesSearch && matchesStatus) {
+                    card.style.display = '';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+        
+        // Open task notes modal
+        function openTaskNotes(taskId, taskName) {
+            currentTaskId = taskId;
+            
+            // Update modal title
+            document.getElementById('modal-task-name').textContent = `Notes: ${taskName}`;
+            
+            // Show modal
+            document.getElementById('notes-modal').style.display = 'block';
+            
+            // Load notes
+            loadNotes(taskId);
+        }
+        
+        // Show the note form for adding a new note
+        function showNoteForm() {
+            document.getElementById('note-text').value = '';
+            document.getElementById('note-form').style.display = 'block';
+            document.getElementById('note-text').focus();
+        }
+        
+        // Cancel adding/editing a note
+        function cancelNote() {
+            document.getElementById('note-form').style.display = 'none';
+            currentEditingNoteId = null;
+        }
+        
+        // Load notes for a specific task
+        async function loadNotes(taskId) {
+            // Show loading indicator
+            const notesList = document.getElementById('notes-list');
+            notesList.innerHTML = '<div class="loading-spinner"></div>';
+            
+            try {
+                const response = await fetch(`http://localhost:8000/api/tasks/${taskId}/notes`);
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`Server error (${response.status}): ${errorText}`);
+                }
+                
+                const notes = await response.json();
+                
+                if (notes.length === 0) {
+                    notesList.innerHTML = '<div class="no-notes-message">No notes yet. Click the + button to add one!</div>';
+                    return;
+                }
+                
+                notesList.innerHTML = '';
+                
+                // Sort notes by date (newest first)
+                notes.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+                
+                notes.forEach(note => {
+                    renderNoteCard(note);
+                });
+            } catch (error) {
+                console.error('Error loading notes:', error);
+                notesList.innerHTML = 
+                    `<div class="no-notes-message error">Error loading notes: ${error.message}</div>`;
+            }
+        }
+        
+        // Render a note card
+        function renderNoteCard(note) {
+            const notesList = document.getElementById('notes-list');
+            
+            const card = document.createElement('div');
+            card.className = 'note-card';
+            card.setAttribute('data-note-id', note.id);
+            
+            const header = document.createElement('div');
+            header.className = 'note-header';
+            
+            const date = document.createElement('div');
+            date.className = 'note-date';
+            date.textContent = formatDate(note.created_at);
+            
+            const actions = document.createElement('div');
+            actions.className = 'note-actions';
+            
+            const editBtn = document.createElement('button');
+            editBtn.className = 'edit-note';
+            editBtn.innerHTML = '<i class="fas fa-edit"></i> Edit';
+            editBtn.onclick = () => editNote(note);
+            
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'delete-note';
+            deleteBtn.innerHTML = '<i class="fas fa-trash"></i> Delete';
+            deleteBtn.onclick = () => deleteNote(note.id);
+            
+            actions.appendChild(editBtn);
+            actions.appendChild(deleteBtn);
+            
+            header.appendChild(date);
+            header.appendChild(actions);
+            
+            const content = document.createElement('div');
+            content.className = 'note-content';
+            content.textContent = note.content;
+            
+            card.appendChild(header);
+            card.appendChild(content);
+            
+            notesList.appendChild(card);
+        }
+        
+        // Edit an existing note
+        function editNote(note) {
+            currentEditingNoteId = note.id;
+            document.getElementById('note-text').value = note.content;
+            document.getElementById('note-form').style.display = 'block';
+            document.getElementById('note-text').focus();
+        }
+        
+        // Format date for display
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleString();
+        }
+        
+        // Save a new note or update an existing one
+        async function saveNote() {
+            if (!currentTaskId) {
+                alert('Please select a task first');
+                return;
+            }
+            
+            const noteText = document.getElementById('note-text').value.trim();
+            
+            if (!noteText) {
+                alert('Please enter some text for your note');
+                return;
+            }
+            
+            if (noteText.length > 10000) {
+                alert('Note is too long. Please keep notes under 10,000 characters.');
+                return;
+            }
+            
+            // Disable form while saving
+            const saveBtn = document.getElementById('save-note-btn');
+            const cancelBtn = document.getElementById('cancel-note-btn');
+            const textarea = document.getElementById('note-text');
+            
+            saveBtn.disabled = true;
+            cancelBtn.disabled = true;
+            textarea.disabled = true;
+            
+            saveBtn.textContent = 'Saving...';
+            
+            try {
+                let url, method;
+                
+                if (currentEditingNoteId) {
+                    // Update existing note
+                    url = `http://localhost:8000/api/notes/${currentEditingNoteId}`;
+                    method = 'PUT';
+                } else {
+                    // Create new note
+                    url = 'http://localhost:8000/api/notes';
+                    method = 'POST';
+                }
+                
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        task_id: currentTaskId,
+                        content: noteText
+                    })
+                });
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`Server error (${response.status}): ${errorText}`);
+                }
+                
+                // Hide the form
+                document.getElementById('note-form').style.display = 'none';
+                currentEditingNoteId = null;
+                
+                // Reload notes
+                loadNotes(currentTaskId);
+                
+                // Update note count in the task card
+                updateTaskNoteCount(currentTaskId);
+                
+                // Show success message
+                showNotification(currentEditingNoteId ? 'Note updated successfully' : 'Note added successfully', 'success');
+            } catch (error) {
+                console.error('Error saving note:', error);
+                showNotification(`Error: ${error.message}`, 'error');
+            } finally {
+                // Re-enable form
+                saveBtn.disabled = false;
+                cancelBtn.disabled = false;
+                textarea.disabled = false;
+                saveBtn.textContent = 'Save Note';
+            }
+        }
+        
+        // Update note count in task card after adding/deleting
+        async function updateTaskNoteCount(taskId) {
+            try {
+                const response = await fetch(`http://localhost:8000/api/tasks/${taskId}/notes`);
+                if (response.ok) {
+                    const notes = await response.json();
+                    const noteCount = notes.length;
+                    
+                    const taskCard = document.querySelector(`.task-card[data-task-id="${taskId}"]`);
+                    if (taskCard) {
+                        const notesCountEl = taskCard.querySelector('.task-notes-count');
+                        if (notesCountEl) {
+                            notesCountEl.textContent = noteCount === 0 ? 'No notes yet' : 
+                                                     noteCount === 1 ? '1 note' : 
+                                                     `${noteCount} notes`;
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error(`Error updating note count for task ${taskId}:`, error);
+            }
+        }
+        
+        // Delete a note
+        async function deleteNote(noteId) {
+            if (!confirm('Are you sure you want to delete this note?')) {
+                return;
+            }
+            
+            // Disable the delete button and show loading state
+            const noteCard = document.querySelector(`.note-card[data-note-id="${noteId}"]`);
+            if (noteCard) {
+                noteCard.style.opacity = '0.5';
+                const deleteBtn = noteCard.querySelector('.delete-note');
+                if (deleteBtn) {
+                    deleteBtn.disabled = true;
+                    deleteBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Deleting...';
+                }
+            }
+            
+            try {
+                const response = await fetch(`http://localhost:8000/api/notes/${noteId}`, {
+                    method: 'DELETE'
+                });
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`Server error (${response.status}): ${errorText}`);
+                }
+                
+                // Reload notes
+                loadNotes(currentTaskId);
+                
+                // Update note count in the task card
+                updateTaskNoteCount(currentTaskId);
+                
+                // Show success message
+                showNotification('Note deleted successfully', 'success');
+            } catch (error) {
+                console.error('Error deleting note:', error);
+                showNotification(`Error: ${error.message}`, 'error');
+                
+                // Restore the note card if it failed
+                if (noteCard) {
+                    noteCard.style.opacity = '1';
+                    const deleteBtn = noteCard.querySelector('.delete-note');
+                    if (deleteBtn) {
+                        deleteBtn.disabled = false;
+                        deleteBtn.innerHTML = '<i class="fas fa-trash"></i> Delete';
+                    }
+                }
+            }
+        }
+        
+        // Function to show notifications
+        function showNotification(message, type = 'info') {
+            // Check if notification container exists
+            let notificationContainer = document.querySelector('.notification-container');
+            
+            if (!notificationContainer) {
+                // Create container if it doesn't exist
+                notificationContainer = document.createElement('div');
+                notificationContainer.className = 'notification-container';
+                document.body.appendChild(notificationContainer);
+            }
+            
+            // Create notification
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.innerHTML = `
+                <span>${message}</span>
+                <button class="close-notification">&times;</button>
+            `;
+            
+            // Add to container
+            notificationContainer.appendChild(notification);
+            
+            // Add close button functionality
+            notification.querySelector('.close-notification').addEventListener('click', () => {
+                notification.remove();
+            });
+            
+            // Auto-remove after 5 seconds
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.remove();
+                }
+            }, 5000);
+        }
+    </script>
+</div> 

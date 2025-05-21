@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Profile Settings</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #0a0e17;
+            color: #e6f1ff;
+            overflow-x: hidden;
+        }
+        
+        .profile-container {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 30px;
+            background: rgba(15, 41, 71, 0.5);
+            border-radius: 16px;
+            border: 1px solid rgba(79, 172, 254, 0.3);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        }
+        
+        .profile-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .profile-header h2 {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .profile-header p {
+            color: #a8b2d1;
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+        
+        .profile-section {
+            margin-bottom: 30px;
+        }
+        
+        .profile-section h3 {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            color: #e6f1ff;
+            border-bottom: 1px solid rgba(79, 172, 254, 0.3);
+            padding-bottom: 10px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #a8b2d1;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 12px;
+            background: rgba(15, 36, 71, 0.8);
+            border: 1px solid rgba(79, 172, 254, 0.3);
+            border-radius: 8px;
+            color: #e6f1ff;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: #4facfe;
+            box-shadow: 0 0 0 2px rgba(79, 172, 254, 0.2);
+        }
+        
+        .btn {
+            padding: 12px 32px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 1rem;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            border: none;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
+            color: #0a1930;
+            box-shadow: 0 4px 15px rgba(79, 172, 254, 0.4);
+        }
+        
+        .btn-primary:hover {
+            box-shadow: 0 7px 25px rgba(79, 172, 254, 0.6);
+            transform: translateY(-2px);
+        }
+        
+        .btn-cancel {
+            background: transparent;
+            color: #e6f1ff;
+            border: 2px solid #f44336;
+        }
+        
+        .btn-cancel:hover {
+            background: rgba(244, 67, 54, 0.1);
+            transform: translateY(-2px);
+        }
+        
+        .form-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+        
+        .profile-info {
+            background: rgba(15, 36, 71, 0.5);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+        
+        .profile-info p {
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .profile-info p span:first-child {
+            font-weight: 600;
+            color: #a8b2d1;
+        }
+        
+        .profile-info p span:last-child {
+            color: #e6f1ff;
+        }
+        
+        .notification {
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            display: none;
+        }
+        
+        .notification.success {
+            background-color: rgba(76, 175, 80, 0.1);
+            border: 1px solid rgba(76, 175, 80, 0.3);
+            color: #4CAF50;
+        }
+        
+        .notification.error {
+            background-color: rgba(244, 67, 54, 0.1);
+            border: 1px solid rgba(244, 67, 54, 0.3);
+            color: #F44336;
+        }
+        
+        @media (max-width: 768px) {
+            .profile-container {
+                padding: 20px;
+                margin: 20px;
+            }
+            
+            .profile-header h2 {
+                font-size: 2rem;
+            }
+            
+            .form-buttons {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="profile-container">
+        <div class="profile-header">
+            <h2>Profile Settings</h2>
+            <p>Update your account information</p>
+        </div>
+        
+        <div id="notification" class="notification"></div>
+        
+        <div class="profile-section">
+            <h3>Account Information</h3>
+            <div class="profile-info">
+                <p><span>Name:</span> <span id="current-email">Loading...</span></p>
+                <p><span>Account Type:</span> <span id="account-type">Loading...</span></p>
+            </div>
+        </div>
+        
+        <div class="profile-section">
+            <h3>Update Name</h3>
+            <form id="email-form">
+                <div class="form-group">
+                    <label for="new-email">New Name</label>
+                    <input type="text" id="new-email" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="email-current-password">Current Password</label>
+                    <input type="password" id="email-current-password" class="form-control" required>
+                </div>
+                <div class="form-buttons">
+                    <button type="button" class="btn btn-cancel">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Update Name</button>
+                </div>
+            </form>
+        </div>
+        
+        <div class="profile-section">
+            <h3>Change Password</h3>
+            <form id="password-form">
+                <div class="form-group">
+                    <label for="current-password">Current Password</label>
+                    <input type="password" id="current-password" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="new-password">New Password</label>
+                    <input type="password" id="new-password" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="confirm-password">Confirm New Password</label>
+                    <input type="password" id="confirm-password" class="form-control" required>
+                </div>
+                <div class="form-buttons">
+                    <button type="button" class="btn btn-cancel">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Update Password</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load user info from local storage
+            const userName = localStorage.getItem('userEmail');
+            const isAdmin = localStorage.getItem('isAdmin') === 'true';
+            
+            // Update display
+            document.getElementById('current-email').textContent = userName || 'Not logged in';
+            document.getElementById('account-type').textContent = isAdmin ? 'Administrator' : 'Regular User';
+            
+            // Cancel buttons
+            document.querySelectorAll('.btn-cancel').forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const form = this.closest('form');
+                    form.reset();
+                });
+            });
+            
+            // Email update form
+            document.getElementById('email-form').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const newName = document.getElementById('new-email').value;
+                const currentPassword = document.getElementById('email-current-password').value;
+                
+                if (!newName || !currentPassword) {
+                    showNotification('Please fill in all fields', 'error');
+                    return;
+                }
+                
+                try {
+                    // Get user ID from current name
+                    const userResponse = await fetch(`http://localhost:8000/users/${userName}`);
+                    const userData = await userResponse.json();
+                    
+                    if (!userData || !userData.id) {
+                        showNotification('User information not found', 'error');
+                        return;
+                    }
+                    
+                    const response = await fetch(`http://localhost:8000/users/update/${userData.id}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            email: newName,
+                            currentEmail: userName,
+                            currentPassword: currentPassword
+                        })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (response.ok) {
+                        // Update local storage
+                        localStorage.setItem('userEmail', newName);
+                        
+                        // Update display
+                        document.getElementById('current-email').textContent = newName;
+                        
+                        // Clear form
+                        this.reset();
+                        
+                        showNotification('Name updated successfully', 'success');
+                        
+                        // Update parent window if in iframe
+                        if (window.parent && window.parent !== window) {
+                            window.parent.updateUserDisplay(newName, isAdmin);
+                        }
+                    } else {
+                        showNotification(data.error || 'Failed to update name', 'error');
+                    }
+                } catch (error) {
+                    console.error('Error updating name:', error);
+                    showNotification('An error occurred while updating your name', 'error');
+                }
+            });
+            
+            // Password update form
+            document.getElementById('password-form').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const currentPassword = document.getElementById('current-password').value;
+                const newPassword = document.getElementById('new-password').value;
+                const confirmPassword = document.getElementById('confirm-password').value;
+                
+                if (!currentPassword || !newPassword || !confirmPassword) {
+                    showNotification('Please fill in all fields', 'error');
+                    return;
+                }
+                
+                if (newPassword !== confirmPassword) {
+                    showNotification('New passwords do not match', 'error');
+                    return;
+                }
+                
+                try {
+                    // Get user ID from current name
+                    const userResponse = await fetch(`http://localhost:8000/users/${userName}`);
+                    const userData = await userResponse.json();
+                    
+                    if (!userData || !userData.id) {
+                        showNotification('User information not found', 'error');
+                        return;
+                    }
+                    
+                    const response = await fetch(`http://localhost:8000/users/update/${userData.id}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            password: newPassword,
+                            currentEmail: userName,
+                            currentPassword: currentPassword
+                        })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (response.ok) {
+                        // Clear form
+                        this.reset();
+                        
+                        showNotification('Password updated successfully', 'success');
+                    } else {
+                        showNotification(data.error || 'Failed to update password', 'error');
+                    }
+                } catch (error) {
+                    console.error('Error updating password:', error);
+                    showNotification('An error occurred while updating your password', 'error');
+                }
+            });
+            
+            // Show notification function
+            function showNotification(message, type) {
+                const notification = document.getElementById('notification');
+                notification.textContent = message;
+                notification.className = `notification ${type}`;
+                notification.style.display = 'block';
+                
+                // Hide after 5 seconds
+                setTimeout(() => {
+                    notification.style.display = 'none';
+                }, 5000);
+            }
+        });
+    </script>
+</body>
+</html> 

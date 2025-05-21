@@ -16,7 +16,7 @@ console.log(`[Worker] Collection interval: ${intervalSeconds} seconds`);
 async function runDataCollection() {
     return new Promise((resolve, reject) => {
         // Get the correct path to the Python script
-        const scriptPath = path.join(__dirname, 'collect_data.py');
+        const scriptPath = path.join(__dirname, 'mock_collect_data.py');//collect_data
         console.log(`[Worker] Running: python ${scriptPath} ${taskId}`);
         
         // Spawn the Python process
