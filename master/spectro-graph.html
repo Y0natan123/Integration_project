@@ -3,27 +3,131 @@
 <head>
     <title>Spectrophotometer Data</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body {
             margin: 0;
             padding: 20px;
             display: flex;
-            justify-content: center;
-            align-items: center;
+            flex-direction: column;
             min-height: 100vh;
             background-color: rgb(174, 137, 209);
+            font-family: Arial, sans-serif;
         }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            color: white;
+        }
+        
+        .header h1 {
+            margin: 0 0 10px 0;
+            font-size: 24px;
+        }
+        
+        .view-controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .view-btn {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(79, 172, 254, 0.3);
+        }
+        
+        .view-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(79, 172, 254, 0.5);
+        }
+        
+        .view-btn.active {
+            background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+        }
+        
+        .download-btn {
+            background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+        }
+        
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(245, 158, 11, 0.5);
+        }
+        
+        .view-section {
+            display: none;
+            flex: 1;
+        }
+        
+        .view-section.active {
+            display: block;
+        }
+        
         .chart-container {
             position: relative;
-            width: 80vw;
-            height: 80vh;
+            height: 70vh;
             margin: 20px auto;
             padding: 20px;
             background-color: white;
             border-radius: 10px;
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
         }
+        
+        .table-container {
+            height: 70vh;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            overflow: auto;
+        }
+        
+        .data-table-wrapper {
+            overflow: auto;
+            max-height: 100%;
+        }
+        
+        #absorbance-data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        
+        #absorbance-data-table th,
+        #absorbance-data-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        
+        #absorbance-data-table th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        
         /* Legend Toggle Button */
         .legend-toggle {
             position: absolute;
@@ -168,6 +272,18 @@
     </style>
 </head>
 <body>
+    <div class="header">
+        <h1>Spectrophotometer Data</h1>
+    </div>
+
+    <div class="view-controls">
+        <button class="view-btn" id="chartViewBtn">Chart View</button>
+        <button class="view-btn" id="spectrumViewBtn">Spectrum View</button>
+        <button class="view-btn" id="rawDataTableBtn">Raw Data Table</button>
+        <button class="download-btn" id="downloadExcelBtn">Download Excel</button>
+    </div>
+
+    <div class="view-section active">
     <div class="chart-container">
         <canvas id="spectroChart"></canvas>
         <button class="legend-toggle" id="legendToggle" title="Toggle Wavelength Legend" role="button" tabindex="0">
@@ -188,73 +304,192 @@
             <div class="legend-controls">
                 <button class="legend-control-btn" id="selectAllBtn">Select All</button>
                 <button class="legend-control-btn" id="deselectAllBtn">Deselect All</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="view-section">
+        <div class="chart-container">
+            <canvas id="spectrumChart"></canvas>
+        </div>
+    </div>
+
+    <div class="view-section">
+        <div class="table-container">
+            <div class="data-table-wrapper">
+                <table id="absorbance-data-table">
+                    <thead>
+                        <tr>
+                            <th>Time (minutes)</th>
+                            <th>Wavelength (nm)</th>
+                            <th>Absorbance</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Table rows will be dynamically added here -->
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
 
     <script>
-        // Get task ID from URL parameter
-        const urlParams = new URLSearchParams(window.location.search);
-        const taskId = urlParams.get('taskId');
-        
-        if (!taskId) {
-            document.body.innerHTML = '<div style="color: red; text-align: center; padding: 20px;">Error: No task ID provided. Please add ?taskId=X to the URL.</div>';
-            throw new Error('No task ID provided');
-        }
+        (function() {
+            // Wrap all JavaScript in an IIFE to avoid variable conflicts
+            const urlParams = new URLSearchParams(window.location.search);
+            const taskId = urlParams.get('taskId');
 
-        // Variables for chart and dataset
-        let chart = null;
-        let chartData = null;
-
-        async function fetchData() {
-            const response = await fetch(`http://localhost:8000/api/tasks/${taskId}/data`);
-            if (!response.ok) {
-                throw new Error(`Failed to fetch data: ${response.statusText}`);
+            if (!taskId) {
+                document.body.innerHTML = '<div style="color: red; text-align: center; margin-top: 50px;">Error: No task ID provided</div>';
             }
-            const data = await response.json();
-            return data;
-        }
 
-        // Function to generate a color based on wavelength
-        function getColorForWavelength(wavelength) {
-            // Match colors to the specific wavelengths in the image
-            if (wavelength === 400) return 'rgb(255, 215, 0)';      // Yellow
-            if (wavelength === 440) return 'rgb(144, 238, 144)';    // Light green
-            if (wavelength === 480) return 'rgb(50, 205, 50)';      // Green
-            if (wavelength === 520) return 'rgb(64, 224, 208)';     // Teal
-            if (wavelength === 560) return 'rgb(135, 206, 250)';    // Light blue
-            if (wavelength === 600) return 'rgb(106, 90, 205)';     // Blue-purple
-            if (wavelength === 640) return 'rgb(147, 112, 219)';    // Purple
-            if (wavelength === 680) return 'rgb(255, 182, 193)';    // Pink
+            let chart = null;
+            let spectrumChart = null;
+            let chartData = null;
+            let taskInfo = null;
+            let currentView = 'chart';
 
-            // Fallback for other wavelengths using approximation
-            if (wavelength < 440) return 'rgb(255, 215, 0)';      // Yellow-ish
-            if (wavelength < 480) return 'rgb(144, 238, 144)';    // Light green
-            if (wavelength < 520) return 'rgb(50, 205, 50)';      // Green
-            if (wavelength < 560) return 'rgb(64, 224, 208)';     // Teal
-            if (wavelength < 600) return 'rgb(135, 206, 250)';    // Light blue
-            if (wavelength < 640) return 'rgb(106, 90, 205)';     // Blue-purple
-            if (wavelength < 680) return 'rgb(147, 112, 219)';    // Purple
-            return 'rgb(255, 182, 193)';                         // Pink
-        }
-
-        async function createChart() {
-            try {
-                chartData = await fetchData();
-                console.log('Fetched data:', chartData);  // Debug log
-                
-                if (!chartData || chartData.length === 0) {
-                    document.body.innerHTML = '<div style="color: red; text-align: center; padding: 20px;">No data available for this task.</div>';
-                    return;
+            // Initialize page
+            document.addEventListener('DOMContentLoaded', async function() {
+                try {
+                    // Load task info
+                    const taskResponse = await fetch(`http://localhost:8000/api/tasks/${taskId}/status`);
+                    taskInfo = await taskResponse.json();
+                    
+                    // Load chart data
+                    const dataResponse = await fetch(`http://localhost:8000/api/tasks/${taskId}/data`);
+                    chartData = await dataResponse.json();
+                    
+                    if (!chartData || chartData.length === 0) {
+                        document.getElementById('main-content').innerHTML = '<div style="text-align: center; margin-top: 50px;">No data available for this task</div>';
+                        return;
+                    }
+                    
+                    // Update page title
+                    document.getElementById('page-title').textContent = `Spectrophotometer Analysis - ${taskInfo.name || taskId}`;
+                    
+                    // Create charts and tables
+                    createCharts();
+                    createDataTable();
+                    
+                    // Set up event handlers
+                    setupEventHandlers();
+                    
+                } catch (error) {
+                    console.error('Error loading task data:', error);
+                    document.getElementById('main-content').innerHTML = '<div style="color: red; text-align: center; margin-top: 50px;">Error loading task data</div>';
                 }
+            });
+
+            function setupEventHandlers() {
+                // View control buttons
+                document.querySelectorAll('.view-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        switchView(e.target.dataset.view);
+                    });
+                });
+
+                // Download Excel button
+                document.getElementById('download-excel-btn').addEventListener('click', downloadExcel);
+
+                // Wavelength popup controls
+                const popup = document.getElementById('wavelengthPopup');
+                const toggle = document.getElementById('legendToggle');
                 
-                // Process data for the chart
+                toggle.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    popup.style.display = popup.style.display === 'block' ? 'none' : 'block';
+                });
+
+                document.getElementById('closePopup').addEventListener('click', () => {
+                    popup.style.display = 'none';
+                });
+
+                document.getElementById('selectAllBtn').addEventListener('click', () => {
+                    document.querySelectorAll('.legend-item.hidden').forEach(item => {
+                        const wavelength = parseInt(item.dataset.wavelength);
+                        toggleDataset(wavelength, item);
+                    });
+                });
+
+                document.getElementById('deselectAllBtn').addEventListener('click', () => {
+                    document.querySelectorAll('.legend-item:not(.hidden)').forEach(item => {
+                        const wavelength = parseInt(item.dataset.wavelength);
+                        toggleDataset(wavelength, item);
+                    });
+                });
+
+                // Close popup when clicking outside
+                window.addEventListener('click', (e) => {
+                    if (!popup.contains(e.target) && e.target !== toggle) {
+                        popup.style.display = 'none';
+                    }
+                });
+            }
+
+            function switchView(view) {
+                currentView = view;
+                
+                // Update active button
+                document.querySelectorAll('.view-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                document.querySelector(`[data-view="${view}"]`).classList.add('active');
+                
+                // Show/hide sections
+                const sections = document.querySelectorAll('.view-section');
+                sections.forEach(section => {
+                    section.style.display = 'none';
+                });
+                
+                document.getElementById(`${view}-view`).style.display = 'block';
+                
+                // Handle chart resize
+                if (view === 'chart' && chart) {
+                    setTimeout(() => chart.resize(), 100);
+                } else if (view === 'spectrum' && spectrumChart) {
+                    setTimeout(() => spectrumChart.resize(), 100);
+                }
+            }
+
+            // Function to generate a color based on wavelength
+            function getColorForWavelength(wavelength) {
+                if (wavelength === 400) return 'rgb(255, 215, 0)';
+                if (wavelength === 440) return 'rgb(144, 238, 144)';
+                if (wavelength === 480) return 'rgb(50, 205, 50)';
+                if (wavelength === 520) return 'rgb(64, 224, 208)';
+                if (wavelength === 560) return 'rgb(135, 206, 250)';
+                if (wavelength === 600) return 'rgb(106, 90, 205)';
+                if (wavelength === 640) return 'rgb(147, 112, 219)';
+                if (wavelength === 680) return 'rgb(255, 182, 193)';
+                
+                if (wavelength < 440) return 'rgb(255, 215, 0)';
+                if (wavelength < 480) return 'rgb(144, 238, 144)';
+                if (wavelength < 520) return 'rgb(50, 205, 50)';
+                if (wavelength < 560) return 'rgb(64, 224, 208)';
+                if (wavelength < 600) return 'rgb(135, 206, 250)';
+                if (wavelength < 640) return 'rgb(106, 90, 205)';
+                if (wavelength < 680) return 'rgb(147, 112, 219)';
+                return 'rgb(255, 182, 193)';
+            }
+
+            function createCharts() {
                 const wavelengths = [...new Set(chartData.map(item => item.wavelength))].sort((a, b) => a - b);
                 const timePoints = [...new Set(chartData.map(item => item.time_point))].sort((a, b) => a - b);
+                const interval = taskInfo.measurement_interval || 1;
                 
-                console.log('Wavelengths:', wavelengths);  // Debug log
-                console.log('Time points:', timePoints);  // Debug log
+                // Create main chart (Absorbance vs Time)
+                createMainChart(wavelengths, timePoints, interval);
                 
+                // Create spectrum chart (Absorbance vs Wavelength)
+                createSpectrumChart(wavelengths, timePoints, interval);
+                
+                // Create custom legend
+                createCustomLegend(wavelengths);
+            }
+
+            function createMainChart(wavelengths, timePoints, interval) {
                 const datasets = wavelengths.map(wavelength => {
                     const color = getColorForWavelength(wavelength);
                     return {
@@ -269,7 +504,7 @@
                         pointRadius: 3,
                         fill: false,
                         tension: 0.1,
-                        hidden: true  // Hide all datasets by default
+                        hidden: true
                     };
                 });
 
@@ -277,7 +512,7 @@
                 chart = new Chart(ctx, {
                     type: 'line',
                     data: {
-                        labels: timePoints.map(t => `${t} minutes`),
+                        labels: timePoints.map(t => `${t * interval} minutes`),
                         datasets: datasets
                     },
                     options: {
@@ -301,140 +536,206 @@
                         plugins: {
                             title: {
                                 display: true,
-                                text: 'Spectrophotometer Measurements Over Time',
-                                font: {
-                                    size: 18
-                                },
-                                padding: {
-                                    top: 10,
-                                    bottom: 20
+                                text: 'Absorbance Over Time',
+                                font: { size: 18 }
+                            },
+                            legend: { display: false }
+                        }
+                    }
+                });
+            }
+
+            function createSpectrumChart(wavelengths, timePoints, interval) {
+                // Group time points by day for spectrum view
+                const timePointsByDay = {};
+                timePoints.forEach(timePoint => {
+                    const day = Math.floor((timePoint * interval) / (24 * 60));
+                    if (!timePointsByDay[day]) {
+                        timePointsByDay[day] = [];
+                    }
+                    timePointsByDay[day].push(timePoint);
+                });
+
+                const datasets = Object.entries(timePointsByDay).map(([day, dayTimePoints], index) => {
+                    const dayData = dayTimePoints.flatMap(timePoint => 
+                        chartData.filter(d => d.time_point === timePoint)
+                    );
+                    
+                    const averagedData = wavelengths.map(wavelength => {
+                        const pointsAtWavelength = dayData.filter(d => d.wavelength === wavelength);
+                        if (pointsAtWavelength.length === 0) return null;
+                        
+                        const sum = pointsAtWavelength.reduce((acc, curr) => acc + curr.absorbance, 0);
+                        return sum / pointsAtWavelength.length;
+                    });
+                    
+                    const hue = 220 + (index * 30) % 360;
+                    const saturation = 70;
+                    const lightness = Math.max(30, 70 - (index * 5));
+                    
+                    return {
+                        label: `Day ${day}`,
+                        data: averagedData,
+                        borderWidth: 2,
+                        borderColor: `hsl(${hue}, ${saturation}%, ${lightness}%)`,
+                        pointRadius: 3,
+                        fill: false,
+                        tension: 0.1
+                    };
+                });
+
+                const ctx = document.getElementById('spectrumChart').getContext('2d');
+                spectrumChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: wavelengths.map(w => `${w} nm`),
+                        datasets: datasets
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Absorbance'
                                 }
                             },
-                            legend: {
-                                display: false // Hide default legend
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Wavelength (nm)'
+                                }
+                            }
+                        },
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: 'Absorbance Spectrum by Day',
+                                font: { size: 18 }
                             },
-                            tooltip: {
-                                backgroundColor: 'rgba(0, 0, 0, 0.7)',
-                                titleFont: {
-                                    size: 14
-                                },
-                                bodyFont: {
-                                    size: 13
-                                },
-                                padding: 10
+                            legend: { 
+                                position: 'top',
+                                labels: { usePointStyle: true }
                             }
                         }
                     }
                 });
-                
-                // Generate custom legend
-                createCustomLegend(wavelengths);
-                
-            } catch (error) {
-                console.error('Error creating chart:', error);
-                document.body.innerHTML = `<div style="color: red; text-align: center; padding: 20px;">Error: ${error.message}</div>`;
             }
-        }
 
-        function createCustomLegend(wavelengths) {
-            const legendItems = document.getElementById('legendItems');
-            legendItems.innerHTML = '';
-            
-            wavelengths.forEach(wavelength => {
-                const color = getColorForWavelength(wavelength);
-                
-                const item = document.createElement('div');
-                item.className = 'legend-item hidden'; // Add hidden class by default
-                item.dataset.wavelength = wavelength;
-                
-                const colorBox = document.createElement('div');
-                colorBox.className = 'legend-color';
-                colorBox.style.backgroundColor = color;
-                
-                const text = document.createElement('div');
-                text.className = 'legend-text';
-                text.textContent = `${wavelength}nm`;
-                
-                item.appendChild(colorBox);
-                item.appendChild(text);
-                
-                // Add click event to toggle dataset visibility
-                item.addEventListener('click', () => {
-                    toggleDataset(wavelength, item);
+            function createDataTable() {
+                const table = document.getElementById('absorbance-data-table');
+                const tbody = table.querySelector('tbody');
+                tbody.innerHTML = '';
+
+                // Sort data by time and wavelength for display
+                const sortedData = [...chartData].sort((a, b) => {
+                    if (a.time_point !== b.time_point) {
+                        return a.time_point - b.time_point;
+                    }
+                    return a.wavelength - b.wavelength;
                 });
-                
-                legendItems.appendChild(item);
-            });
-        }
-        
-        function toggleDataset(wavelength, legendItem) {
-            const datasetIndex = chart.data.datasets.findIndex(dataset => dataset.label === `${wavelength}nm`);
-            
-            if (datasetIndex === -1) return;
-            
-            // Toggle visibility
-            const isVisible = chart.isDatasetVisible(datasetIndex);
-            if (isVisible) {
-                chart.hide(datasetIndex);
-                legendItem.classList.add('hidden');
-            } else {
-                chart.show(datasetIndex);
-                legendItem.classList.remove('hidden');
-            }
-        }
-        
-        // Toggle legend panel visibility
-        document.getElementById('legendToggle').addEventListener('click', (e) => {
-            console.log('Legend toggle clicked in spectro-graph'); // Debugging log
-            e.stopPropagation(); // Prevent event bubbling
-            const popup = document.getElementById('wavelengthPopup');
-            popup.classList.add('visible');
-        });
-        
-        // Close popup button
-        document.getElementById('closePopup').addEventListener('click', () => {
-            const popup = document.getElementById('wavelengthPopup');
-            popup.classList.remove('visible');
-        });
-        
-        // Close the popup when clicking outside of it
-        document.addEventListener('click', (e) => {
-            const popup = document.getElementById('wavelengthPopup');
-            const toggle = document.getElementById('legendToggle');
-            if (popup && popup.classList.contains('visible') && 
-                !popup.contains(e.target) && 
-                e.target !== toggle) {
-                popup.classList.remove('visible');
-            }
-        });
-        
-        // Select all datasets
-        document.getElementById('selectAllBtn').addEventListener('click', () => {
-            chart.data.datasets.forEach((dataset, index) => {
-                chart.show(index);
-            });
-            
-            document.querySelectorAll('.legend-item').forEach(item => {
-                item.classList.remove('hidden');
-            });
-            
-            chart.update();
-        });
-        
-        // Deselect all datasets
-        document.getElementById('deselectAllBtn').addEventListener('click', () => {
-            chart.data.datasets.forEach((dataset, index) => {
-                chart.hide(index);
-            });
-            
-            document.querySelectorAll('.legend-item').forEach(item => {
-                item.classList.add('hidden');
-            });
-            
-            chart.update();
-        });
 
-        createChart();
+                const interval = taskInfo.measurement_interval || 1;
+
+                sortedData.forEach(point => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${(point.time_point * interval).toFixed(1)}</td>
+                        <td>${point.wavelength}</td>
+                        <td>${point.absorbance.toFixed(4)}</td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            }
+
+            function createCustomLegend(wavelengths) {
+                const legendItems = document.getElementById('legendItems');
+                legendItems.innerHTML = '';
+                
+                wavelengths.forEach(wavelength => {
+                    const color = getColorForWavelength(wavelength);
+                    
+                    const item = document.createElement('div');
+                    item.className = 'legend-item hidden';
+                    item.dataset.wavelength = wavelength;
+                    
+                    const colorBox = document.createElement('div');
+                    colorBox.className = 'legend-color';
+                    colorBox.style.backgroundColor = color;
+                    
+                    const text = document.createElement('div');
+                    text.className = 'legend-text';
+                    text.textContent = `${wavelength}nm`;
+                    
+                    item.appendChild(colorBox);
+                    item.appendChild(text);
+                    
+                    item.addEventListener('click', () => {
+                        toggleDataset(wavelength, item);
+                    });
+                    
+                    legendItems.appendChild(item);
+                });
+            }
+            
+            function toggleDataset(wavelength, legendItem) {
+                const datasetIndex = chart.data.datasets.findIndex(dataset => dataset.label === `${wavelength}nm`);
+                
+                if (datasetIndex === -1) return;
+                
+                const isVisible = chart.isDatasetVisible(datasetIndex);
+                if (isVisible) {
+                    chart.hide(datasetIndex);
+                    legendItem.classList.add('hidden');
+                } else {
+                    chart.show(datasetIndex);
+                    legendItem.classList.remove('hidden');
+                }
+            }
+            
+            function downloadExcel() {
+                try {
+                    const wavelengths = [...new Set(chartData.map(item => item.wavelength))].sort((a, b) => a - b);
+                    const timePoints = [...new Set(chartData.map(item => item.time_point))].sort((a, b) => a - b);
+                    const interval = taskInfo.measurement_interval || 1;
+                    
+                    // Create header row
+                    const header = ['Wavelength (nm)'];
+                    timePoints.forEach(t => {
+                        header.push(`${t * interval} min`);
+                    });
+                    
+                    // Create rows for each wavelength
+                    const rows = [header];
+                    
+                    wavelengths.forEach(wavelength => {
+                        const row = [wavelength];
+                        timePoints.forEach(time => {
+                            const point = chartData.find(d => d.wavelength === wavelength && d.time_point === time);
+                            row.push(point ? point.absorbance : null);
+                        });
+                        rows.push(row);
+                    });
+                    
+                    // Create workbook
+                    const wb = XLSX.utils.book_new();
+                    const ws = XLSX.utils.aoa_to_sheet(rows);
+                    XLSX.utils.book_append_sheet(wb, ws, 'Absorbance Data');
+                    
+                    // Generate filename
+                    const fileName = `spectro_data_${taskInfo.name || taskId}_${new Date().toISOString().slice(0,10)}.xlsx`;
+                    
+                    // Download file
+                    XLSX.writeFile(wb, fileName);
+                    
+                } catch (error) {
+                    console.error('Error generating Excel file:', error);
+                    alert('Failed to generate Excel file');
+                }
+            }
+        })();
     </script>
 </body>
 </html>

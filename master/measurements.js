@@ -544,11 +544,11 @@ function updateDataTable(data) {
     // Clear existing rows
     tableBody.innerHTML = '';
     
-    // Update header with time points
-    headerRow.innerHTML = '<th>Wavelength (nm) \ Time (min)</th>';
+    // Update header with time points (without "min" suffix)
+    headerRow.innerHTML = '<th>Wavelength (nm) \ Time</th>';
     timePoints.forEach(time => {
         const th = document.createElement('th');
-        th.textContent = `${time} min`;
+        th.textContent = `${time}`;  // Remove " min" suffix
         headerRow.appendChild(th);
     });
     

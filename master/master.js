@@ -159,6 +159,10 @@ iconclose.addEventListener('click', () => {
 src="https://code.jquery.com/jquery-3.6.0.min.js"
 
 homefun.addEventListener('click', () => {
+    // Clean up admin page if coming from it
+    if (window.adminFunctions && window.adminFunctions.cleanupAdminPage) {
+        window.adminFunctions.cleanupAdminPage();
+    }
     $("#navbar-placeholder").load( "home.html");
 });
 
@@ -168,6 +172,11 @@ Admin.addEventListener('click', () => {
 });
 
 spectroGraph.addEventListener('click', () => {
+    // Clean up admin page if coming from it
+    if (window.adminFunctions && window.adminFunctions.cleanupAdminPage) {
+        window.adminFunctions.cleanupAdminPage();
+    }
+    
     // Check if user is logged in (using both cookies and localStorage)
     const sessionId = getCookie('sessionId');
     const userEmailFromCookie = getCookie('userEmail');
@@ -195,6 +204,11 @@ spectroGraph.addEventListener('click', () => {
 });
 
 notesLink.addEventListener('click', () => {
+    // Clean up admin page if coming from it
+    if (window.adminFunctions && window.adminFunctions.cleanupAdminPage) {
+        window.adminFunctions.cleanupAdminPage();
+    }
+    
     // Check if user is logged in (using both cookies and localStorage)
     const sessionId = getCookie('sessionId');
     const userEmailFromCookie = getCookie('userEmail');
@@ -348,6 +362,78 @@ function initializeMeasurements() {
     // Save task button click
     if (saveTaskBtn) {
         saveTaskBtn.addEventListener('click', saveTask);
+    }
+
+    // Wavelength popup event listeners (same as measurements.js)
+    // Legend toggle
+    const legendToggle = document.getElementById('legendToggle');
+    if (legendToggle) {
+        legendToggle.addEventListener('click', (e) => {
+            console.log('Legend toggle clicked'); // Debugging log
+            e.stopPropagation(); // Prevent event bubbling
+            const popup = document.getElementById('wavelengthPopup');
+            if (popup) {
+                popup.classList.add('visible');
+            }
+        });
+    }
+    
+    // Close popup button
+    const closePopupBtn = document.getElementById('closePopup');
+    if (closePopupBtn) {
+        closePopupBtn.addEventListener('click', () => {
+            const popup = document.getElementById('wavelengthPopup');
+            if (popup) {
+                popup.classList.remove('visible');
+            }
+        });
+    }
+    
+    // Close the popup when clicking outside of it
+    document.addEventListener('click', (e) => {
+        const popup = document.getElementById('wavelengthPopup');
+        const toggle = document.getElementById('legendToggle');
+        if (popup && popup.classList.contains('visible') && 
+            !popup.contains(e.target) && 
+            e.target !== toggle) {
+            popup.classList.remove('visible');
+        }
+    });
+    
+    // Select all button
+    const selectAllBtn = document.getElementById('selectAllBtn');
+    if (selectAllBtn) {
+        selectAllBtn.addEventListener('click', () => {
+            if (!currentChart) return;
+            
+            currentChart.data.datasets.forEach((dataset, index) => {
+                currentChart.show(index);
+            });
+            
+            document.querySelectorAll('.legend-item').forEach(item => {
+                item.classList.remove('hidden');
+            });
+            
+            currentChart.update();
+        });
+    }
+    
+    // Deselect all button
+    const deselectAllBtn = document.getElementById('deselectAllBtn');
+    if (deselectAllBtn) {
+        deselectAllBtn.addEventListener('click', () => {
+            if (!currentChart) return;
+            
+            currentChart.data.datasets.forEach((dataset, index) => {
+                currentChart.hide(index);
+            });
+            
+            document.querySelectorAll('.legend-item').forEach(item => {
+                item.classList.add('hidden');
+            });
+            
+            currentChart.update();
+        });
     }
 
     // Helper functions
@@ -943,8 +1029,32 @@ function initializeMeasurements() {
             const wavelengths = [...new Set(data.map(item => item.wavelength))].sort((a, b) => a - b);
             const timePoints = [...new Set(data.map(item => item.time_point))].sort((a, b) => a - b);
             
+            // Function to generate a color based on wavelength (same as spectro-graph.html)
+            function getColorForWavelength(wavelength) {
+                // Match colors to the specific wavelengths in the image
+                if (wavelength === 400) return 'rgb(255, 215, 0)';      // Yellow
+                if (wavelength === 440) return 'rgb(144, 238, 144)';    // Light green
+                if (wavelength === 480) return 'rgb(50, 205, 50)';      // Green
+                if (wavelength === 520) return 'rgb(64, 224, 208)';     // Teal
+                if (wavelength === 560) return 'rgb(135, 206, 250)';    // Light blue
+                if (wavelength === 600) return 'rgb(106, 90, 205)';     // Blue-purple
+                if (wavelength === 640) return 'rgb(147, 112, 219)';    // Purple
+                if (wavelength === 680) return 'rgb(255, 182, 193)';    // Pink
+
+                // Fallback for other wavelengths using approximation
+                if (wavelength < 440) return 'rgb(255, 215, 0)';      // Yellow-ish
+                if (wavelength < 480) return 'rgb(144, 238, 144)';    // Light green
+                if (wavelength < 520) return 'rgb(50, 205, 50)';      // Green
+                if (wavelength < 560) return 'rgb(64, 224, 208)';     // Teal
+                if (wavelength < 600) return 'rgb(135, 206, 250)';    // Light blue
+                if (wavelength < 640) return 'rgb(106, 90, 205)';     // Blue-purple
+                if (wavelength < 680) return 'rgb(147, 112, 219)';    // Purple
+                return 'rgb(255, 182, 193)';                         // Pink
+            }
+            
             // Create datasets by wavelength (each wavelength is a line across time points)
             const datasets = wavelengths.map(wavelength => {
+                const color = getColorForWavelength(wavelength);
                 const wavelengthData = data.filter(d => d.wavelength === wavelength);
                 return {
                     label: `${wavelength}nm`,
@@ -952,11 +1062,13 @@ function initializeMeasurements() {
                         const point = wavelengthData.find(d => d.time_point === time);
                         return point ? point.absorbance : null;
                     }),
-                    borderWidth: 1,
-                    borderColor: `hsl(${(wavelength % 360)}deg, 70%, 50%)`,
+                    borderColor: color,
+                    backgroundColor: color.replace('1)', '0.1)'),
+                    borderWidth: 2,
                     pointRadius: 3,
-                    showLine: true,
-                    fill: false
+                    fill: false,
+                    tension: 0.1,
+                    hidden: true  // Hide all datasets by default
                 };
             });
             
@@ -1009,20 +1121,71 @@ function initializeMeasurements() {
                             text: 'Absorbance Over Time by Wavelength'
                         },
                         legend: {
-                            position: 'right',
-                            labels: {
-                                boxWidth: 20
-                            }
+                            display: false // Hide default legend
                         }
                     }
                 }
             });
+            
+            // Create custom legend
+            createCustomLegend(currentChart, wavelengths, getColorForWavelength);
             
             console.log("Main chart updated successfully");
         } catch (error) {
             console.error("Error updating main chart:", error);
             // Reset the chart instance if there was an error
             currentChart = null;
+        }
+    }
+    
+    // Function to create custom legend (similar to measurements.js)
+    function createCustomLegend(chartInstance, wavelengths, getColorForWavelength) {
+        const legendItems = document.getElementById('legendItems');
+        if (!legendItems) return;
+        
+        legendItems.innerHTML = '';
+        
+        wavelengths.forEach(wavelength => {
+            const color = getColorForWavelength(wavelength);
+            
+            const item = document.createElement('div');
+            item.className = 'legend-item hidden'; // Add hidden class by default
+            item.dataset.wavelength = wavelength;
+            
+            const colorBox = document.createElement('div');
+            colorBox.className = 'legend-color';
+            colorBox.style.backgroundColor = color;
+            
+            const text = document.createElement('div');
+            text.className = 'legend-text';
+            text.textContent = `${wavelength}nm`;
+            
+            item.appendChild(colorBox);
+            item.appendChild(text);
+            
+            // Add click event to toggle dataset visibility
+            item.addEventListener('click', () => {
+                toggleDataset(chartInstance, wavelength, item);
+            });
+            
+            legendItems.appendChild(item);
+        });
+    }
+
+    // Function to toggle dataset visibility (similar to measurements.js)
+    function toggleDataset(chartInstance, wavelength, legendItem) {
+        const datasetIndex = chartInstance.data.datasets.findIndex(dataset => dataset.label === `${wavelength}nm`);
+        
+        if (datasetIndex === -1) return;
+        
+        // Toggle visibility
+        const isVisible = chartInstance.isDatasetVisible(datasetIndex);
+        if (isVisible) {
+            chartInstance.hide(datasetIndex);
+            legendItem.classList.add('hidden');
+        } else {
+            chartInstance.show(datasetIndex);
+            legendItem.classList.remove('hidden');
         }
     }
 
@@ -1058,7 +1221,7 @@ function initializeMeasurements() {
             // Add time headers
             timePoints.forEach(time => {
                 const th = document.createElement('th');
-                th.textContent = `${time * measurementInterval} min`;  // Show time in minutes
+                th.textContent = `${time * measurementInterval}`;  // Remove "min" suffix
                 headerRow.appendChild(th);
             });
             
@@ -1326,16 +1489,12 @@ function initializeMeasurements() {
 }
 
 logedB.addEventListener('click', () => {
-    // Check if we're on the Measurements page
-    const measurementsPage = document.querySelector('.measurements-container');
-    
+    // Clear login state and reset UI
     clearLoginState();
     resetToLoggedOutState();
     
-    // If we're on the Measurements page, redirect to home
-    if (measurementsPage) {
-        $("#navbar-placeholder").load("home.html");
-    }
+    // Always redirect to home page after logout
+    $("#navbar-placeholder").load("home.html");
     
     // Clear form fields if they exist
     const loginForm = document.querySelector('.login');
@@ -1474,27 +1633,78 @@ async function ifUser(user) {
 }
 
 async function createTableData() {
-    const users = await getData()
-    const tableEl = document.getElementById("tbl")
+    try {
+        console.log("createTableData called - checking for admin table");
+        
+        // Check if we're on the admin page by looking for the correct table
+        const tableEl = document.getElementById("usersTableBody");
+        
+        if (!tableEl) {
+            console.log("Admin table not found (usersTableBody), skipping createTableData");
+            return;
+        }
+        
+        console.log("Admin table found, loading users data");
+        
+        const users = await getData();
+        
+        if (!users || users.length === 0) {
+            console.log("No users data returned");
+            return;
+        }
+        
+        // Clear existing rows
+        tableEl.innerHTML = '';
 
-    users.forEach(user => {
-        // create elements
-        const newTr = document.createElement("tr") // <tr></tr>
-        const tdName = document.createElement("td") // <td></td>
-        const tdAge = document.createElement("td") // <td></td>
+        users.forEach(user => {
+            // create elements
+            const newTr = document.createElement("tr");
+            
+            // Create table cells matching the admin page structure
+            const tdId = document.createElement("td");
+            const tdName = document.createElement("td");
+            const tdRole = document.createElement("td");
+            const tdBirthday = document.createElement("td");
+            const tdActions = document.createElement("td");
 
-        // insert data to the new columns
-        tdName.textContent = user.name
-        tdAge.textContent = user.password
+            // insert data to the new columns
+            tdId.textContent = user.id || 'N/A';
+            tdName.textContent = user.name || 'N/A';
+            
+            // Role cell with badge
+            const roleBadge = document.createElement("span");
+            roleBadge.className = `status-badge ${user.admin ? 'status-admin' : 'status-user'}`;
+            roleBadge.textContent = user.admin ? 'Administrator' : 'Regular User';
+            tdRole.appendChild(roleBadge);
+            
+            tdBirthday.textContent = user.birthday || 'Not set';
+            
+            // Actions cell with buttons
+            tdActions.innerHTML = `
+                <button class="btn btn-warning" onclick="window.adminFunctions.editUser(${user.id}, '${user.name}', ${user.admin}, '${user.birthday || ''}')">
+                    <i class="fas fa-edit"></i> Edit
+                </button>
+                <button class="btn btn-danger" onclick="window.adminFunctions.deleteUser(${user.id}, '${user.name}')">
+                    <i class="fas fa-trash"></i> Delete
+                </button>
+            `;
 
-        // append the new columns to the new row
-        newTr.appendChild(tdName)
-        newTr.appendChild(tdAge)
+            // append the new columns to the new row
+            newTr.appendChild(tdId);
+            newTr.appendChild(tdName);
+            newTr.appendChild(tdRole);
+            newTr.appendChild(tdBirthday);
+            newTr.appendChild(tdActions);
 
-        // append the new row to the table
-        tableEl.appendChild(newTr)
-
-    })
+            // append the new row to the table
+            tableEl.appendChild(newTr);
+        });
+        
+        console.log(`Added ${users.length} users to admin table`);
+        
+    } catch (error) {
+        console.error('Error in createTableData:', error);
+    }
 }
 
 async function getData() {
@@ -1738,15 +1948,10 @@ function checkLoginState() {
     const isAdmin = isAdminFromCookie || isAdminFromStorage;
     const isLoggedIn = (sessionId && userEmailFromCookie) || isLoggedInFromStorage;
     
-    // Check if we're on the Measurements page
-    const measurementsPage = document.querySelector('.measurements-container');
-    
     if (!isLoggedIn || !userEmail) {
         resetToLoggedOutState();
-        // If we're on the Measurements page, redirect to home
-        if (measurementsPage) {
-            $("#navbar-placeholder").load("home.html");
-        }
+        // Always redirect to home page when not logged in
+        $("#navbar-placeholder").load("home.html");
         return;
     }
     
@@ -1754,10 +1959,8 @@ function checkLoginState() {
     if (sessionId && Date.now() - lastActivity > 30 * 60 * 1000) {
         clearLoginState();
         resetToLoggedOutState();
-        // If we're on the Measurements page, redirect to home
-        if (measurementsPage) {
-            $("#navbar-placeholder").load("home.html");
-        }
+        // Always redirect to home page on session timeout
+        $("#navbar-placeholder").load("home.html");
         return;
     }
     

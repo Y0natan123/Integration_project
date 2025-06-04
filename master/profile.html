@@ -17,6 +17,8 @@
             background-color: #0a0e17;
             color: #e6f1ff;
             overflow-x: hidden;
+            overflow-y: auto;
+            min-height: 100vh;
         }
         
         .profile-container {
@@ -27,6 +29,8 @@
             border-radius: 16px;
             border: 1px solid rgba(79, 172, 254, 0.3);
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            max-height: calc(100vh - 80px);
+            overflow-y: auto;
         }
         
         .profile-header {
@@ -115,14 +119,14 @@
             transform: translateY(-2px);
         }
         
-        .btn-cancel {
+        .btn-secondary {
             background: transparent;
             color: #e6f1ff;
-            border: 2px solid #f44336;
+            border: 2px solid rgba(79, 172, 254, 0.3);
         }
         
-        .btn-cancel:hover {
-            background: rgba(244, 67, 54, 0.1);
+        .btn-secondary:hover {
+            background: rgba(79, 172, 254, 0.1);
             transform: translateY(-2px);
         }
         
@@ -174,10 +178,30 @@
             color: #F44336;
         }
         
+        /* Scrollbar styling for dark theme */
+        .profile-container::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .profile-container::-webkit-scrollbar-track {
+            background: rgba(15, 36, 71, 0.3);
+        }
+
+        .profile-container::-webkit-scrollbar-thumb {
+            background: rgba(79, 172, 254, 0.5);
+            border-radius: 4px;
+        }
+
+        .profile-container::-webkit-scrollbar-thumb:hover {
+            background: rgba(79, 172, 254, 0.7);
+        }
+        
         @media (max-width: 768px) {
             .profile-container {
                 padding: 20px;
                 margin: 20px;
+                max-height: calc(100vh - 40px);
+                overflow-y: auto;
             }
             
             .profile-header h2 {
@@ -198,196 +222,318 @@
     <div class="profile-container">
         <div class="profile-header">
             <h2>Profile Settings</h2>
-            <p>Update your account information</p>
+            <p>Manage your account information and preferences</p>
         </div>
-        
+
         <div id="notification" class="notification"></div>
-        
+
+        <!-- Current Profile Information -->
         <div class="profile-section">
-            <h3>Account Information</h3>
-            <div class="profile-info">
-                <p><span>Name:</span> <span id="current-email">Loading...</span></p>
-                <p><span>Account Type:</span> <span id="account-type">Loading...</span></p>
+            <h3><i class="fas fa-user"></i> Current Profile Information</h3>
+            <div class="profile-info" id="currentInfo">
+                <p><span>Username:</span> <span id="currentName">Loading...</span></p>
+                <p><span>Account Type:</span> <span id="currentRole">Loading...</span></p>
+                <p><span>Birthday:</span> <span id="currentBirthday">Not set</span></p>
+                <p><span>Member Since:</span> <span id="memberSince">Loading...</span></p>
+            </div>
+            
+            <!-- Admin Dashboard Button - Only visible for admins -->
+            <div id="adminPanel" style="display: none; text-align: center; margin-top: 20px;">
+                <button class="btn btn-primary" onclick="window.profileFunctions.openAdminDashboard()">
+                    <i class="fas fa-shield-alt"></i> Open Admin Dashboard
+                </button>
             </div>
         </div>
-        
+
+        <!-- Update Profile Form -->
         <div class="profile-section">
-            <h3>Update Name</h3>
-            <form id="email-form">
+            <h3><i class="fas fa-edit"></i> Update Profile Information</h3>
+            <div style="background: rgba(255, 152, 0, 0.1); border: 1px solid rgba(255, 152, 0, 0.3); padding: 12px; border-radius: 8px; margin-bottom: 20px; color: #ff9800; font-size: 0.9rem;">
+                <i class="fas fa-info-circle"></i> Note: You must enter your current password in the "Change Password" section below to update your profile information.
+            </div>
+            <form id="updateProfileForm">
                 <div class="form-group">
-                    <label for="new-email">New Name</label>
-                    <input type="text" id="new-email" class="form-control" required>
+                    <label for="newName">New Username:</label>
+                    <input type="text" class="form-control" id="newName" placeholder="Enter new username">
                 </div>
+                
                 <div class="form-group">
-                    <label for="email-current-password">Current Password</label>
-                    <input type="password" id="email-current-password" class="form-control" required>
+                    <label for="newBirthday">Birthday:</label>
+                    <input type="date" class="form-control" id="newBirthday">
                 </div>
+                
                 <div class="form-buttons">
-                    <button type="button" class="btn btn-cancel">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Update Name</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Update Profile
+                    </button>
                 </div>
             </form>
         </div>
-        
+
+        <!-- Change Password Form -->
         <div class="profile-section">
-            <h3>Change Password</h3>
-            <form id="password-form">
+            <h3><i class="fas fa-lock"></i> Change Password</h3>
+            <form id="changePasswordForm">
                 <div class="form-group">
-                    <label for="current-password">Current Password</label>
-                    <input type="password" id="current-password" class="form-control" required>
+                    <label for="currentPassword">Current Password:</label>
+                    <input type="password" class="form-control" id="currentPassword" required>
                 </div>
+                
                 <div class="form-group">
-                    <label for="new-password">New Password</label>
-                    <input type="password" id="new-password" class="form-control" required>
+                    <label for="newPassword">New Password:</label>
+                    <input type="password" class="form-control" id="newPassword" required>
                 </div>
+                
                 <div class="form-group">
-                    <label for="confirm-password">Confirm New Password</label>
-                    <input type="password" id="confirm-password" class="form-control" required>
+                    <label for="confirmPassword">Confirm New Password:</label>
+                    <input type="password" class="form-control" id="confirmPassword" required>
                 </div>
+                
                 <div class="form-buttons">
-                    <button type="button" class="btn btn-cancel">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Update Password</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-key"></i> Change Password
+                    </button>
                 </div>
             </form>
         </div>
     </div>
-    
+
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Load user info from local storage
-            const userName = localStorage.getItem('userEmail');
-            const isAdmin = localStorage.getItem('isAdmin') === 'true';
+        (function() {
+            // Wrap all JavaScript in an IIFE to avoid variable conflicts
+            // Get current user from localStorage - try multiple possible keys/formats
+            let currentUser = null;
             
-            // Update display
-            document.getElementById('current-email').textContent = userName || 'Not logged in';
-            document.getElementById('account-type').textContent = isAdmin ? 'Administrator' : 'Regular User';
+            // Try different localStorage keys that might contain user data
+            const possibleKeys = ['currentUser', 'userEmail', 'user', 'loggedInUser'];
+            for (const key of possibleKeys) {
+                const stored = localStorage.getItem(key);
+                if (stored) {
+                    try {
+                        // Try parsing as JSON first
+                        currentUser = JSON.parse(stored);
+                        if (currentUser && currentUser.name) break;
+                    } catch (e) {
+                        // If not JSON, treat as plain string (username)
+                        currentUser = { name: stored };
+                        break;
+                    }
+                }
+            }
             
-            // Cancel buttons
-            document.querySelectorAll('.btn-cancel').forEach(button => {
-                button.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    const form = this.closest('form');
-                    form.reset();
-                });
-            });
+            // If still no user found, try individual localStorage items
+            if (!currentUser || !currentUser.name) {
+                const userEmail = localStorage.getItem('userEmail');
+                const isAdmin = localStorage.getItem('isAdmin') === 'true';
+                
+                if (userEmail) {
+                    currentUser = {
+                        name: userEmail,
+                        admin: isAdmin,
+                        id: 1 // Default ID, will be updated when we fetch user data
+                    };
+                }
+            }
             
-            // Email update form
-            document.getElementById('email-form').addEventListener('submit', async function(e) {
+            // Last resort: prompt user to enter their username
+            if (!currentUser || !currentUser.name) {
+                const userName = prompt('Please enter your username to access profile settings:');
+                if (userName) {
+                    currentUser = {
+                        name: userName,
+                        admin: false,
+                        id: 1
+                    };
+                }
+            }
+            
+            // Load current user information
+            async function loadCurrentUserInfo() {
+                try {
+                    if (!currentUser || !currentUser.name) {
+                        throw new Error('No user logged in. Please log in first.');
+                    }
+
+                    console.log('Loading user info for:', currentUser.name);
+                    const response = await fetch(`http://localhost:8000/users/${currentUser.name}`);
+                    
+                    if (!response.ok) {
+                        if (response.status === 404) {
+                            throw new Error(`User "${currentUser.name}" not found in database`);
+                        }
+                        throw new Error(`Server error: ${response.status}`);
+                    }
+                    
+                    const userData = await response.json();
+
+                    // Update currentUser with server data
+                    currentUser.id = userData.id;
+                    currentUser.admin = userData.admin;
+                    
+                    // Save updated user data
+                    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+
+                    // Update display
+                    document.getElementById('currentName').textContent = userData.name;
+                    document.getElementById('currentRole').textContent = userData.admin ? 'Administrator' : 'Regular User';
+                    document.getElementById('currentBirthday').textContent = userData.birthday || 'Not set';
+                    document.getElementById('memberSince').textContent = new Date().toLocaleDateString(); // Placeholder
+                    
+                    // Show admin panel button if user is admin
+                    if (userData.admin) {
+                        document.getElementById('adminPanel').style.display = 'block';
+                    }
+                    
+                    // Pre-fill form fields
+                    document.getElementById('newName').value = userData.name;
+                    document.getElementById('newBirthday').value = userData.birthday || '';
+                    
+                    // Show success message
+                    showNotification('Profile loaded successfully!', 'success');
+                    
+                } catch (error) {
+                    console.error('Error loading user info:', error);
+                    showNotification('Error loading user information: ' + error.message, 'error');
+                    
+                    // Show manual login option
+                    showManualLoginOption();
+                }
+            }
+            
+            // Show manual login option when auto-detection fails
+            function showManualLoginOption() {
+                const profileInfo = document.getElementById('currentInfo');
+                profileInfo.innerHTML = `
+                    <div style="text-align: center; padding: 20px;">
+                        <p style="margin-bottom: 15px; color: #f44336;">Unable to detect logged-in user</p>
+                        <button class="btn btn-primary" onclick="window.profileFunctions.manualLogin()">
+                            <i class="fas fa-sign-in-alt"></i> Enter Username Manually
+                        </button>
+                        <p style="margin-top: 15px; font-size: 0.9rem; color: #a8b2d1;">
+                            Or go back and log in through the main application
+                        </p>
+                    </div>
+                `;
+            }
+            
+            // Manual login function
+            function manualLogin() {
+                const userName = prompt('Enter your username:');
+                if (userName && userName.trim()) {
+                    currentUser = {
+                        name: userName.trim(),
+                        admin: false,
+                        id: 1
+                    };
+                    loadCurrentUserInfo();
+                }
+            }
+
+            // Update profile form handler
+            document.getElementById('updateProfileForm').addEventListener('submit', async (e) => {
                 e.preventDefault();
                 
-                const newName = document.getElementById('new-email').value;
-                const currentPassword = document.getElementById('email-current-password').value;
-                
-                if (!newName || !currentPassword) {
-                    showNotification('Please fill in all fields', 'error');
+                if (!currentUser || !currentUser.name) {
+                    showNotification('Please log in first', 'error');
                     return;
                 }
                 
+                const newName = document.getElementById('newName').value.trim();
+                const newBirthday = document.getElementById('newBirthday').value;
+                const currentPassword = document.getElementById('currentPassword').value;
+                
+                if (!newName) {
+                    showNotification('Username is required', 'error');
+                    return;
+                }
+                
+                if (!currentPassword) {
+                    showNotification('Current password is required to update profile', 'error');
+                    return;
+                }
+
                 try {
-                    // Get user ID from current name
-                    const userResponse = await fetch(`http://localhost:8000/users/${userName}`);
-                    const userData = await userResponse.json();
-                    
-                    if (!userData || !userData.id) {
-                        showNotification('User information not found', 'error');
-                        return;
-                    }
-                    
-                    const response = await fetch(`http://localhost:8000/users/update/${userData.id}`, {
+                    const response = await fetch(`http://localhost:8000/users/update/${currentUser.id}`, {
                         method: 'PUT',
                         headers: {
                             'Content-Type': 'application/json'
                         },
                         body: JSON.stringify({
-                            email: newName,
-                            currentEmail: userName,
-                            currentPassword: currentPassword
+                            email: newName, // API expects email parameter
+                            currentEmail: currentUser.name,
+                            currentPassword: currentPassword,
+                            birthday: newBirthday
                         })
                     });
-                    
-                    const data = await response.json();
-                    
+
+                    const result = await response.json();
+
                     if (response.ok) {
-                        // Update local storage
-                        localStorage.setItem('userEmail', newName);
-                        
-                        // Update display
-                        document.getElementById('current-email').textContent = newName;
-                        
-                        // Clear form
-                        this.reset();
-                        
-                        showNotification('Name updated successfully', 'success');
-                        
-                        // Update parent window if in iframe
-                        if (window.parent && window.parent !== window) {
-                            window.parent.updateUserDisplay(newName, isAdmin);
-                        }
+                        showNotification('Profile updated successfully!', 'success');
+                        // Update localStorage
+                        currentUser.name = newName;
+                        localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                        localStorage.setItem('userEmail', newName); // Also update userEmail key
+                        // Reload user info
+                        loadCurrentUserInfo();
                     } else {
-                        showNotification(data.error || 'Failed to update name', 'error');
+                        throw new Error(result.error || 'Failed to update profile');
                     }
                 } catch (error) {
-                    console.error('Error updating name:', error);
-                    showNotification('An error occurred while updating your name', 'error');
+                    showNotification('Error updating profile: ' + error.message, 'error');
                 }
             });
-            
-            // Password update form
-            document.getElementById('password-form').addEventListener('submit', async function(e) {
+
+            // Change password form handler
+            document.getElementById('changePasswordForm').addEventListener('submit', async (e) => {
                 e.preventDefault();
                 
-                const currentPassword = document.getElementById('current-password').value;
-                const newPassword = document.getElementById('new-password').value;
-                const confirmPassword = document.getElementById('confirm-password').value;
-                
-                if (!currentPassword || !newPassword || !confirmPassword) {
-                    showNotification('Please fill in all fields', 'error');
+                if (!currentUser || !currentUser.name) {
+                    showNotification('Please log in first', 'error');
                     return;
                 }
+                
+                const currentPassword = document.getElementById('currentPassword').value;
+                const newPassword = document.getElementById('newPassword').value;
+                const confirmPassword = document.getElementById('confirmPassword').value;
                 
                 if (newPassword !== confirmPassword) {
                     showNotification('New passwords do not match', 'error');
                     return;
                 }
                 
+                if (newPassword.length < 6) {
+                    showNotification('Password must be at least 6 characters long', 'error');
+                    return;
+                }
+
                 try {
-                    // Get user ID from current name
-                    const userResponse = await fetch(`http://localhost:8000/users/${userName}`);
-                    const userData = await userResponse.json();
-                    
-                    if (!userData || !userData.id) {
-                        showNotification('User information not found', 'error');
-                        return;
-                    }
-                    
-                    const response = await fetch(`http://localhost:8000/users/update/${userData.id}`, {
+                    const response = await fetch(`http://localhost:8000/users/update/${currentUser.id}`, {
                         method: 'PUT',
                         headers: {
                             'Content-Type': 'application/json'
                         },
                         body: JSON.stringify({
                             password: newPassword,
-                            currentEmail: userName,
+                            currentEmail: currentUser.name,
                             currentPassword: currentPassword
                         })
                     });
-                    
-                    const data = await response.json();
-                    
+
+                    const result = await response.json();
+
                     if (response.ok) {
+                        showNotification('Password changed successfully!', 'success');
                         // Clear form
-                        this.reset();
-                        
-                        showNotification('Password updated successfully', 'success');
+                        document.getElementById('changePasswordForm').reset();
                     } else {
-                        showNotification(data.error || 'Failed to update password', 'error');
+                        throw new Error(result.error || 'Failed to change password');
                     }
                 } catch (error) {
-                    console.error('Error updating password:', error);
-                    showNotification('An error occurred while updating your password', 'error');
+                    showNotification('Error changing password: ' + error.message, 'error');
                 }
             });
-            
+
             // Show notification function
             function showNotification(message, type) {
                 const notification = document.getElementById('notification');
@@ -395,12 +541,25 @@
                 notification.className = `notification ${type}`;
                 notification.style.display = 'block';
                 
-                // Hide after 5 seconds
                 setTimeout(() => {
                     notification.style.display = 'none';
                 }, 5000);
             }
-        });
+
+            // Open admin dashboard function
+            function openAdminDashboard() {
+                window.open('Admain.html', '_blank');
+            }
+
+            // Expose functions globally for onclick handlers
+            window.profileFunctions = {
+                manualLogin: manualLogin,
+                openAdminDashboard: openAdminDashboard
+            };
+
+            // Load user info on page load
+            loadCurrentUserInfo();
+        })();
     </script>
 </body>
 </html> 
