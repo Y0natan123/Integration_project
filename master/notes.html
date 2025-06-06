@@ -1514,7 +1514,7 @@
                             method = 'PUT';
                         } else {
                             // Create new note
-                            url = 'http://localhost:8000/api/notes';
+                            url = `http://localhost:8000/api/tasks/${currentTaskId}/runs/${currentRunId}/notes`;
                             method = 'POST';
                         }
                         

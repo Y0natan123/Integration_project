@@ -1493,8 +1493,13 @@ logedB.addEventListener('click', () => {
     clearLoginState();
     resetToLoggedOutState();
     
-    // Always redirect to home page after logout
-    $("#navbar-placeholder").load("home.html");
+    // Use page persistence system for logout
+    if (window.pagePersistence && window.pagePersistence.handleLogout) {
+        window.pagePersistence.handleLogout();
+    } else {
+        // Fallback to direct home page load
+        $("#navbar-placeholder").load("home.html");
+    }
     
     // Clear form fields if they exist
     const loginForm = document.querySelector('.login');
@@ -1547,11 +1552,11 @@ async function login(pass, name) {
             saveLoginState(name, data.user.admin);
 
             // Also set cookies for compatibility with existing checks
-            const expires = new Date(Date.now() + (4 * 60 * 60 * 1000)); // 4 hours
-            document.cookie = `sessionId=authenticated; expires=${expires.toUTCString()}; path=/; secure; samesite=strict`;
-            document.cookie = `userEmail=${name}; expires=${expires.toUTCString()}; path=/; secure; samesite=strict`;
-            document.cookie = `isAdmin=${data.user.admin}; expires=${expires.toUTCString()}; path=/; secure; samesite=strict`;
-            document.cookie = `lastActivity=${Date.now()}; expires=${expires.toUTCString()}; path=/; secure; samesite=strict`;
+            const expires = new Date(Date.now() + (24 * 60 * 60 * 1000)); // 24 hours
+            document.cookie = `sessionId=authenticated; expires=${expires.toUTCString()}; path=/; samesite=lax`;
+            document.cookie = `userEmail=${name}; expires=${expires.toUTCString()}; path=/; samesite=lax`;
+            document.cookie = `isAdmin=${data.user.admin}; expires=${expires.toUTCString()}; path=/; samesite=lax`;
+            document.cookie = `lastActivity=${Date.now()}; expires=${expires.toUTCString()}; path=/; samesite=lax`;
 
             alert("Welcome!");
         } else {
@@ -1913,15 +1918,19 @@ function saveLoginState(name, isAdmin) {
 function clearLoginState() {
     // Clear all cookies by setting their expiration to the past
     const pastDate = new Date(0).toUTCString();
-    document.cookie = `sessionId=; expires=${pastDate}; path=/; secure; samesite=strict`;
-    document.cookie = `userEmail=; expires=${pastDate}; path=/; secure; samesite=strict`;
-    document.cookie = `isAdmin=; expires=${pastDate}; path=/; secure; samesite=strict`;
-    document.cookie = `lastActivity=; expires=${pastDate}; path=/; secure; samesite=strict`;
+    document.cookie = `sessionId=; expires=${pastDate}; path=/; samesite=lax`;
+    document.cookie = `userEmail=; expires=${pastDate}; path=/; samesite=lax`;
+    document.cookie = `isAdmin=; expires=${pastDate}; path=/; samesite=lax`;
+    document.cookie = `lastActivity=; expires=${pastDate}; path=/; samesite=lax`;
+    document.cookie = `loginTime=; expires=${pastDate}; path=/; samesite=lax`;
     
     // Clear localStorage items
     localStorage.removeItem('userEmail');
     localStorage.removeItem('isAdmin');
     localStorage.removeItem('isLoggedIn');
+    localStorage.removeItem('loginTime');
+    localStorage.removeItem('lastActivity');
+    localStorage.removeItem('loginData');
 }
 
 function getCookie(name) {
@@ -1950,8 +1959,12 @@ function checkLoginState() {
     
     if (!isLoggedIn || !userEmail) {
         resetToLoggedOutState();
-        // Always redirect to home page when not logged in
-        $("#navbar-placeholder").load("home.html");
+        // Use page persistence system if available
+        if (window.pagePersistence && window.pagePersistence.navigateToHome) {
+            window.pagePersistence.navigateToHome();
+        } else {
+            $("#navbar-placeholder").load("home.html");
+        }
         return;
     }
     
@@ -1959,15 +1972,19 @@ function checkLoginState() {
     if (sessionId && Date.now() - lastActivity > 30 * 60 * 1000) {
         clearLoginState();
         resetToLoggedOutState();
-        // Always redirect to home page on session timeout
-        $("#navbar-placeholder").load("home.html");
+        // Use page persistence system if available
+        if (window.pagePersistence && window.pagePersistence.navigateToHome) {
+            window.pagePersistence.navigateToHome();
+        } else {
+            $("#navbar-placeholder").load("home.html");
+        }
         return;
     }
     
     // Update last activity if using cookies
     if (sessionId) {
-        const expires = new Date(Date.now() + (4 * 60 * 60 * 1000));
-        document.cookie = `lastActivity=${Date.now()}; expires=${expires.toUTCString()}; path=/; secure; samesite=strict`;
+        const expires = new Date(Date.now() + (24 * 60 * 60 * 1000));
+        document.cookie = `lastActivity=${Date.now()}; expires=${expires.toUTCString()}; path=/; samesite=lax`;
     }
     
     // Update UI for logged in state
@@ -1991,22 +2008,25 @@ activityEvents.forEach(event => {
     document.addEventListener(event, () => {
         lastActivity = Date.now();
         // Update last activity cookie
-        const expires = new Date(Date.now() + (4 * 60 * 60 * 1000));
-        document.cookie = `lastActivity=${Date.now()}; expires=${expires.toUTCString()}; path=/; secure; samesite=strict`;
+        const expires = new Date(Date.now() + (24 * 60 * 60 * 1000));
+        document.cookie = `lastActivity=${Date.now()}; expires=${expires.toUTCString()}; path=/; samesite=lax`;
     });
 });
 
-// Security check intervals
-setInterval(() => {
-    checkLoginState();
-}, 60000); // Check every minute
+// Security check intervals - DISABLED IN FAVOR OF ENHANCED SESSION MANAGEMENT
+// These aggressive checks were causing frequent disconnections
+// The enhanced session management in session_fix.js handles this better
 
-setInterval(() => {
-    if (Date.now() - lastActivity > 30 * 60 * 1000) { // 30 minutes
-        clearLoginState();
-        resetToLoggedOutState();
-    }
-}, 5 * 60 * 1000);
+// setInterval(() => {
+//     checkLoginState();
+// }, 60000); // Check every minute
+
+// setInterval(() => {
+//     if (Date.now() - lastActivity > 30 * 60 * 1000) { // 30 minutes
+//         clearLoginState();
+//         resetToLoggedOutState();
+//     }
+// }, 5 * 60 * 1000);
 
 // Add a function to refresh all task statuses from the server
 async function refreshAllTaskStatuses() {
