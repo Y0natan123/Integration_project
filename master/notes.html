@@ -1204,7 +1204,12 @@
                 graphBtn.title = `View spectrophotometer graph for run #${run.run_id}`;
                 graphBtn.onclick = (e) => {
                     e.stopPropagation();
-                    const url = `spectro-graph.html?taskId=${taskData.task_id}`;
+                    // Check if run has data before opening graph
+                    if (!run.measurements_count || run.measurements_count === 0) {
+                        alert(`No measurement data available for Run #${run.run_id}`);
+                        return;
+                    }
+                    const url = `spectro-graph.html?taskId=${taskData.task_id}&runId=${run.run_id}`;
                     window.open(url, '_blank', 'width=1400,height=900');
                 };
                 
@@ -1308,14 +1313,24 @@
                 notesList.innerHTML = '<div class="loading-spinner"></div>';
                 
                 try {
-                    const response = await fetch(`http://localhost:8000/api/tasks/${taskId}/runs/${runId}/notes`);
+                    let notes = [];
                     
-                    if (!response.ok) {
-                        const errorText = await response.text();
-                        throw new Error(`Server error (${response.status}): ${errorText}`);
+                    // Try server first
+                    try {
+                        const response = await fetch(`http://localhost:8000/api/tasks/${taskId}/runs/${runId}/notes`);
+                        
+                        if (response.ok) {
+                            notes = await response.json();
+                        } else {
+                            throw new Error('Server not available');
+                        }
+                    } catch (serverError) {
+                        console.log('Server not available, using mock data');
+                        // Use mock data as fallback
+                        notes = mockNotes.filter(note => 
+                            note.task_id == taskId && note.run_id == runId
+                        );
                     }
-                    
-                    const notes = await response.json();
                     
                     if (notes.length === 0) {
                         notesList.innerHTML = '<div class="no-notes-message">No notes for this run yet. Click + to add one!</div>';
@@ -1395,6 +1410,68 @@
                 return date.toLocaleString();
             }
             
+            // Mock data for notes (in case server is not available)
+            let mockNotes = [
+                // Task 1 (Vitamin C Analysis) - Run 1
+                {
+                    id: 1, task_id: 1, run_id: 1,
+                    content: "תחילת מדידת ויטמין C בדגימת מיץ תפוזים. ריכוז ראשוני משוער: 45mg/100ml",
+                    created_at: "2024-01-15T09:15:00Z", author: "Dr. Rachel Cohen"
+                },
+                {
+                    id: 2, task_id: 1, run_id: 1,
+                    content: "שיא אבספורציה ב-265nm תואם לריכוז ויטמין C של 42.3mg/100ml. תוצאה תקינה לפי הסטנדרט.",
+                    created_at: "2024-01-15T09:32:00Z", author: "Dr. Rachel Cohen"
+                },
+                {
+                    id: 3, task_id: 1, run_id: 1,
+                    content: "זיהיתי סטייה קלה ב-280nm - יכול להעיד על נוכחות חומצה אסקורבית מחומצנת. דורש בדיקה נוספת.",
+                    created_at: "2024-01-15T09:45:00Z", author: "Dr. Rachel Cohen"
+                },
+                
+                // Task 1 - Run 2
+                {
+                    id: 4, task_id: 1, run_id: 2,
+                    content: "חזרה על המדידה עם דגימה טרייה. הפעם עם pH מבוקר ב-3.5",
+                    created_at: "2024-01-15T14:20:00Z", author: "Dan Levi"
+                },
+                {
+                    id: 5, task_id: 1, run_id: 2,
+                    content: "תוצאות מעולות! ריכוז ויטמין C: 44.1mg/100ml. עקומה חלקה ללא הפרעות.",
+                    created_at: "2024-01-15T14:35:00Z", author: "Dan Levi"
+                },
+                
+                // Task 2 (Chlorophyll Analysis) - Run 1
+                {
+                    id: 6, task_id: 2, run_id: 1,
+                    content: "מדידת כלורופיל בעלי תרד. דגימה הומוגנית באתנול 80%",
+                    created_at: "2024-01-16T08:30:00Z", author: "Miri Even"
+                },
+                {
+                    id: 7, task_id: 2, run_id: 1,
+                    content: "שיא אבספורציה ב-663nm (כלורופיל a) ו-647nm (כלורופיל b). יחס a/b = 2.8 - תקין לעלי תרד",
+                    created_at: "2024-01-16T08:50:00Z", author: "Miri Even"
+                },
+                {
+                    id: 8, task_id: 2, run_id: 1,
+                    content: "ריכוז כולל: כלורופיל a = 1.23mg/g, כלורופיל b = 0.44mg/g. תוצאות תואמות ספרות מקצועית.",
+                    created_at: "2024-01-16T09:15:00Z", author: "Dr. Rachel Cohen"
+                },
+                
+                // Task 3 (Water Purity Testing) - Run 1
+                {
+                    id: 9, task_id: 3, run_id: 1,
+                    content: "בדיקת טוהר מים מברז מעבדה. מדידה ב-254nm לזיהוי חומרים אורגניים",
+                    created_at: "2024-01-17T11:00:00Z", author: "Dan Levi"
+                },
+                {
+                    id: 10, task_id: 3, run_id: 1,
+                    content: "אבספורביות נמוכה מאוד < 0.05 בכל הטווח. מים עומדים בתקן איכות למעבדה.",
+                    created_at: "2024-01-17T11:25:00Z", author: "Dan Levi"
+                }
+            ];
+            let nextNoteId = 11;
+
             // Save a new note or update an existing one
             async function saveNote() {
                 if (!currentTaskId || currentRunId === null) {
@@ -1425,33 +1502,62 @@
                 saveBtn.textContent = 'Saving...';
                 
                 try {
-                    let url, method;
+                    // Try server first, fallback to mock data
+                    let success = false;
                     
-                    if (currentEditingNoteId) {
-                        // Update existing note
-                        url = `http://localhost:8000/api/notes/${currentEditingNoteId}`;
-                        method = 'PUT';
-                    } else {
-                        // Create new note
-                        url = 'http://localhost:8000/api/notes';
-                        method = 'POST';
+                    try {
+                        let url, method;
+                        
+                        if (currentEditingNoteId) {
+                            // Update existing note
+                            url = `http://localhost:8000/api/notes/${currentEditingNoteId}`;
+                            method = 'PUT';
+                        } else {
+                            // Create new note
+                            url = 'http://localhost:8000/api/notes';
+                            method = 'POST';
+                        }
+                        
+                        const response = await fetch(url, {
+                            method: method,
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                task_id: currentTaskId,
+                                run_id: currentRunId,
+                                content: noteText
+                            })
+                        });
+                        
+                        if (response.ok) {
+                            success = true;
+                        }
+                    } catch (serverError) {
+                        console.log('Server not available, using mock data');
                     }
                     
-                    const response = await fetch(url, {
-                        method: method,
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            task_id: currentTaskId,
-                            run_id: currentRunId,
-                            content: noteText
-                        })
-                    });
-                    
-                    if (!response.ok) {
-                        const errorText = await response.text();
-                        throw new Error(`Server error (${response.status}): ${errorText}`);
+                    // If server failed, use mock data
+                    if (!success) {
+                        if (currentEditingNoteId) {
+                            // Update existing note in mock data
+                            const noteIndex = mockNotes.findIndex(n => n.id === currentEditingNoteId);
+                            if (noteIndex >= 0) {
+                                mockNotes[noteIndex].content = noteText;
+                                mockNotes[noteIndex].created_at = new Date().toISOString();
+                            }
+                        } else {
+                            // Add new note to mock data
+                            const newNote = {
+                                id: nextNoteId++,
+                                task_id: currentTaskId,
+                                run_id: currentRunId,
+                                content: noteText,
+                                created_at: new Date().toISOString(),
+                                author: "Current User"
+                            };
+                            mockNotes.push(newNote);
+                        }
                     }
                     
                     // Hide the form
@@ -1481,31 +1587,43 @@
             // Update note count in run card
             async function updateRunNoteCount(taskId, runId) {
                 try {
-                    const response = await fetch(`http://localhost:8000/api/tasks/${taskId}/runs/${runId}/notes`);
-                    if (response.ok) {
-                        const notes = await response.json();
-                        const noteCount = notes.length;
-                        
-                        const runCard = document.querySelector(`.run-card[data-task-id="${taskId}"][data-run-id="${runId}"]`);
-                        if (runCard) {
-                            const notesCountEl = runCard.querySelector('.run-notes-count');
-                            if (notesCountEl) {
-                                notesCountEl.innerHTML = `
-                                    <i class="fas fa-sticky-note"></i> 
-                                    ${noteCount === 0 ? 'No notes' : 
-                                      noteCount === 1 ? '1 note' : 
-                                      `${noteCount} notes`}
-                                `;
-                            }
+                    let noteCount = 0;
+                    
+                    // Try server first
+                    try {
+                        const response = await fetch(`http://localhost:8000/api/tasks/${taskId}/runs/${runId}/notes`);
+                        if (response.ok) {
+                            const notes = await response.json();
+                            noteCount = notes.length;
+                        } else {
+                            throw new Error('Server not available');
                         }
-                        
-                        // Update in tasksData
-                        const taskData = tasksData.find(t => t.task_id == taskId);
-                        if (taskData) {
-                            const runData = taskData.runs.find(r => r.run_id == runId);
-                            if (runData) {
-                                runData.notes_count = noteCount;
-                            }
+                    } catch (serverError) {
+                        // Use mock data as fallback
+                        noteCount = mockNotes.filter(note => 
+                            note.task_id == taskId && note.run_id == runId
+                        ).length;
+                    }
+                    
+                    const runCard = document.querySelector(`.run-card[data-task-id="${taskId}"][data-run-id="${runId}"]`);
+                    if (runCard) {
+                        const notesCountEl = runCard.querySelector('.run-notes-count');
+                        if (notesCountEl) {
+                            notesCountEl.innerHTML = `
+                                <i class="fas fa-sticky-note"></i> 
+                                ${noteCount === 0 ? 'No notes' : 
+                                  noteCount === 1 ? '1 note' : 
+                                  `${noteCount} notes`}
+                            `;
+                        }
+                    }
+                    
+                    // Update in tasksData
+                    const taskData = tasksData.find(t => t.task_id == taskId);
+                    if (taskData) {
+                        const runData = taskData.runs.find(r => r.run_id == runId);
+                        if (runData) {
+                            runData.notes_count = noteCount;
                         }
                     }
                 } catch (error) {

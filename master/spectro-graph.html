@@ -353,21 +353,31 @@
             // Initialize page
             document.addEventListener('DOMContentLoaded', async function() {
                 try {
+                    console.log('Loading task data for task ID:', taskId);
+                    
                     // Load task info
                     const taskResponse = await fetch(`http://localhost:8000/api/tasks/${taskId}/status`);
+                    if (!taskResponse.ok) {
+                        throw new Error(`Failed to load task status: ${taskResponse.status}`);
+                    }
                     taskInfo = await taskResponse.json();
+                    console.log('Task info loaded:', taskInfo);
                     
                     // Load chart data
                     const dataResponse = await fetch(`http://localhost:8000/api/tasks/${taskId}/data`);
+                    if (!dataResponse.ok) {
+                        throw new Error(`Failed to load task data: ${dataResponse.status}`);
+                    }
                     chartData = await dataResponse.json();
+                    console.log('Chart data loaded:', chartData.length, 'points');
                     
                     if (!chartData || chartData.length === 0) {
-                        document.getElementById('main-content').innerHTML = '<div style="text-align: center; margin-top: 50px;">No data available for this task</div>';
+                        document.body.innerHTML = '<div style="text-align: center; margin-top: 50px; color: orange;">No data available for this task</div>';
                         return;
                     }
                     
                     // Update page title
-                    document.getElementById('page-title').textContent = `Spectrophotometer Analysis - ${taskInfo.name || taskId}`;
+                    document.querySelector('.header h1').textContent = `Spectrophotometer Analysis - ${taskInfo.name || taskId}`;
                     
                     // Create charts and tables
                     createCharts();
@@ -376,22 +386,25 @@
                     // Set up event handlers
                     setupEventHandlers();
                     
+                    // Initialize the first view
+                    switchView('chart');
+                    
+                    console.log('Page initialization complete');
+                    
                 } catch (error) {
                     console.error('Error loading task data:', error);
-                    document.getElementById('main-content').innerHTML = '<div style="color: red; text-align: center; margin-top: 50px;">Error loading task data</div>';
+                    document.body.innerHTML = `<div style="color: red; text-align: center; margin-top: 50px;">Error loading task data: ${error.message}</div>`;
                 }
             });
 
             function setupEventHandlers() {
                 // View control buttons
-                document.querySelectorAll('.view-btn').forEach(btn => {
-                    btn.addEventListener('click', (e) => {
-                        switchView(e.target.dataset.view);
-                    });
-                });
+                document.getElementById('chartViewBtn').addEventListener('click', () => switchView('chart'));
+                document.getElementById('spectrumViewBtn').addEventListener('click', () => switchView('spectrum'));
+                document.getElementById('rawDataTableBtn').addEventListener('click', () => switchView('table'));
 
                 // Download Excel button
-                document.getElementById('download-excel-btn').addEventListener('click', downloadExcel);
+                document.getElementById('downloadExcelBtn').addEventListener('click', downloadExcel);
 
                 // Wavelength popup controls
                 const popup = document.getElementById('wavelengthPopup');
@@ -435,15 +448,28 @@
                 document.querySelectorAll('.view-btn').forEach(btn => {
                     btn.classList.remove('active');
                 });
-                document.querySelector(`[data-view="${view}"]`).classList.add('active');
+                
+                if (view === 'chart') {
+                    document.getElementById('chartViewBtn').classList.add('active');
+                } else if (view === 'spectrum') {
+                    document.getElementById('spectrumViewBtn').classList.add('active');
+                } else if (view === 'table') {
+                    document.getElementById('rawDataTableBtn').classList.add('active');
+                }
                 
                 // Show/hide sections
                 const sections = document.querySelectorAll('.view-section');
-                sections.forEach(section => {
-                    section.style.display = 'none';
+                sections.forEach((section, index) => {
+                    if ((view === 'chart' && index === 0) ||
+                        (view === 'spectrum' && index === 1) ||
+                        (view === 'table' && index === 2)) {
+                        section.classList.add('active');
+                        section.style.display = 'block';
+                    } else {
+                        section.classList.remove('active');
+                        section.style.display = 'none';
+                    }
                 });
-                
-                document.getElementById(`${view}-view`).style.display = 'block';
                 
                 // Handle chart resize
                 if (view === 'chart' && chart) {

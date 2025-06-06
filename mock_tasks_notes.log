@@ -1,0 +1,123 @@
+2025-06-06 14:15:18,527 - INFO - Starting mock data creation...
+2025-06-06 14:15:18,527 - INFO - Database path: c:\Users\Magshimim\Documents\פרויקטים לקורות חיים\Integration_project\absorbanceDB.db
+2025-06-06 14:15:18,540 - INFO - Database tables created successfully
+2025-06-06 14:15:27,795 - INFO - Cleared existing tasks and notes data
+2025-06-06 14:15:27,796 - INFO - Inserting 10 mock tasks...
+2025-06-06 14:15:27,798 - INFO - Created task 1: Protein Concentration Analysis
+2025-06-06 14:15:27,798 - INFO - Created task 2: DNA Purity Assessment
+2025-06-06 14:15:27,798 - INFO - Created task 3: Chlorophyll Content Measurement
+2025-06-06 14:15:27,798 - INFO - Created task 4: Bacterial Growth Monitoring
+2025-06-06 14:15:27,798 - INFO - Created task 5: Enzyme Activity Assay
+2025-06-06 14:15:27,798 - INFO - Created task 6: Cell Viability Test
+2025-06-06 14:15:27,799 - INFO - Created task 7: Antioxidant Capacity Analysis
+2025-06-06 14:15:27,799 - INFO - Created task 8: Hemoglobin Concentration
+2025-06-06 14:15:27,799 - INFO - Created task 9: Water Quality Assessment
+2025-06-06 14:15:27,800 - INFO - Created task 10: Pharmaceutical Compound Analysis
+2025-06-06 14:15:27,800 - INFO - Inserting 36 mock notes...
+2025-06-06 14:15:27,803 - INFO - Successfully inserted 10 tasks and 36 notes
+2025-06-06 14:15:27,807 - INFO - 
+==================================================
+2025-06-06 14:15:27,809 - INFO - CREATED TASKS:
+2025-06-06 14:15:27,809 - INFO - ==================================================
+2025-06-06 14:15:27,809 - INFO - ID: 1
+2025-06-06 14:15:27,810 - INFO - Name: Protein Concentration Analysis
+2025-06-06 14:15:27,810 - INFO - Wavelengths: 280-320nm (step: 5nm)
+2025-06-06 14:15:27,810 - INFO - Status: active
+2025-06-06 14:15:27,810 - INFO - Notes: 2 notes created
+2025-06-06 14:15:27,811 - INFO -   - Quality Control
+2025-06-06 14:15:27,811 - INFO -   - Sample Preparation Notes
+2025-06-06 14:15:27,811 - INFO - ------------------------------
+2025-06-06 14:15:27,811 - INFO - ID: 2
+2025-06-06 14:15:27,811 - INFO - Name: DNA Purity Assessment
+2025-06-06 14:15:27,811 - INFO - Wavelengths: 230-320nm (step: 10nm)
+2025-06-06 14:15:27,812 - INFO - Status: active
+2025-06-06 14:15:27,812 - INFO - Notes: 4 notes created
+2025-06-06 14:15:27,812 - INFO -   - Quality Control
+2025-06-06 14:15:27,812 - INFO -   - Experimental Protocol
+2025-06-06 14:15:27,812 - INFO -   - Results Summary
+2025-06-06 14:15:27,812 - INFO -   - Troubleshooting
+2025-06-06 14:15:27,813 - INFO - ------------------------------
+2025-06-06 14:15:27,813 - INFO - ID: 3
+2025-06-06 14:15:27,813 - INFO - Name: Chlorophyll Content Measurement
+2025-06-06 14:15:27,813 - INFO - Wavelengths: 400-700nm (step: 20nm)
+2025-06-06 14:15:27,813 - INFO - Status: active
+2025-06-06 14:15:27,813 - INFO - Notes: 4 notes created
+2025-06-06 14:15:27,814 - INFO -   - Results Summary
+2025-06-06 14:15:27,814 - INFO -   - Troubleshooting
+2025-06-06 14:15:27,814 - INFO -   - Experimental Protocol
+2025-06-06 14:15:27,814 - INFO -   - Sample Preparation Notes
+2025-06-06 14:15:27,814 - INFO - ------------------------------
+2025-06-06 14:15:27,815 - INFO - ID: 4
+2025-06-06 14:15:27,815 - INFO - Name: Bacterial Growth Monitoring
+2025-06-06 14:15:27,815 - INFO - Wavelengths: 580-620nm (step: 5nm)
+2025-06-06 14:15:27,815 - INFO - Status: active
+2025-06-06 14:15:27,815 - INFO - Notes: 2 notes created
+2025-06-06 14:15:27,816 - INFO -   - Troubleshooting
+2025-06-06 14:15:27,816 - INFO -   - Results Summary
+2025-06-06 14:15:27,816 - INFO - ------------------------------
+2025-06-06 14:15:27,816 - INFO - ID: 5
+2025-06-06 14:15:27,816 - INFO - Name: Enzyme Activity Assay
+2025-06-06 14:15:27,816 - INFO - Wavelengths: 340-400nm (step: 10nm)
+2025-06-06 14:15:27,817 - INFO - Status: active
+2025-06-06 14:15:27,817 - INFO - Notes: 4 notes created
+2025-06-06 14:15:27,817 - INFO -   - Experimental Protocol
+2025-06-06 14:15:27,817 - INFO -   - Quality Control
+2025-06-06 14:15:27,817 - INFO -   - Results Summary
+2025-06-06 14:15:27,817 - INFO -   - Sample Preparation Notes
+2025-06-06 14:15:27,818 - INFO - ------------------------------
+2025-06-06 14:15:27,818 - INFO - ID: 6
+2025-06-06 14:15:27,818 - INFO - Name: Cell Viability Test
+2025-06-06 14:15:27,818 - INFO - Wavelengths: 490-530nm (step: 5nm)
+2025-06-06 14:15:27,819 - INFO - Status: active
+2025-06-06 14:15:27,819 - INFO - Notes: 4 notes created
+2025-06-06 14:15:27,819 - INFO -   - Sample Preparation Notes
+2025-06-06 14:15:27,819 - INFO -   - Results Summary
+2025-06-06 14:15:27,820 - INFO -   - Troubleshooting
+2025-06-06 14:15:27,820 - INFO -   - Quality Control
+2025-06-06 14:15:27,820 - INFO - ------------------------------
+2025-06-06 14:15:27,820 - INFO - ID: 7
+2025-06-06 14:15:27,820 - INFO - Name: Antioxidant Capacity Analysis
+2025-06-06 14:15:27,820 - INFO - Wavelengths: 500-800nm (step: 25nm)
+2025-06-06 14:15:27,820 - INFO - Status: active
+2025-06-06 14:15:27,821 - INFO - Notes: 4 notes created
+2025-06-06 14:15:27,821 - INFO -   - Results Summary
+2025-06-06 14:15:27,821 - INFO -   - Quality Control
+2025-06-06 14:15:27,821 - INFO -   - Sample Preparation Notes
+2025-06-06 14:15:27,821 - INFO -   - Experimental Protocol
+2025-06-06 14:15:27,822 - INFO - ------------------------------
+2025-06-06 14:15:27,822 - INFO - ID: 8
+2025-06-06 14:15:27,822 - INFO - Name: Hemoglobin Concentration
+2025-06-06 14:15:27,822 - INFO - Wavelengths: 400-450nm (step: 5nm)
+2025-06-06 14:15:27,822 - INFO - Status: active
+2025-06-06 14:15:27,823 - INFO - Notes: 4 notes created
+2025-06-06 14:15:27,823 - INFO -   - Results Summary
+2025-06-06 14:15:27,823 - INFO -   - Troubleshooting
+2025-06-06 14:15:27,824 - INFO -   - Sample Preparation Notes
+2025-06-06 14:15:27,825 - INFO -   - Quality Control
+2025-06-06 14:15:27,825 - INFO - ------------------------------
+2025-06-06 14:15:27,825 - INFO - ID: 9
+2025-06-06 14:15:27,825 - INFO - Name: Water Quality Assessment
+2025-06-06 14:15:27,826 - INFO - Wavelengths: 200-300nm (step: 10nm)
+2025-06-06 14:15:27,827 - INFO - Status: active
+2025-06-06 14:15:27,829 - INFO - Notes: 4 notes created
+2025-06-06 14:15:27,829 - INFO -   - Results Summary
+2025-06-06 14:15:27,829 - INFO -   - Sample Preparation Notes
+2025-06-06 14:15:27,830 - INFO -   - Troubleshooting
+2025-06-06 14:15:27,830 - INFO -   - Experimental Protocol
+2025-06-06 14:15:27,830 - INFO - ------------------------------
+2025-06-06 14:15:27,830 - INFO - ID: 10
+2025-06-06 14:15:27,830 - INFO - Name: Pharmaceutical Compound Analysis
+2025-06-06 14:15:27,830 - INFO - Wavelengths: 250-350nm (step: 5nm)
+2025-06-06 14:15:27,831 - INFO - Status: completed
+2025-06-06 14:15:27,831 - INFO - Notes: 4 notes created
+2025-06-06 14:15:27,832 - INFO -   - Troubleshooting
+2025-06-06 14:15:27,832 - INFO -   - Results Summary
+2025-06-06 14:15:27,832 - INFO -   - Quality Control
+2025-06-06 14:15:27,832 - INFO -   - Sample Preparation Notes
+2025-06-06 14:15:27,832 - INFO - ------------------------------
+2025-06-06 14:15:27,833 - INFO - 
+SUMMARY: 10 tasks and 36 notes created successfully!
+2025-06-06 14:15:27,833 - INFO - Mock data creation completed successfully!
+2025-06-06 14:18:33,135 - INFO - Starting mock data creation...
+2025-06-06 14:18:33,135 - INFO - Database path: C:\Users\Magshimim\Documents\פרויקטים לקורות חיים\Integration_project\absorbanceDB.db
+2025-06-06 14:18:33,136 - INFO - Database tables created successfully

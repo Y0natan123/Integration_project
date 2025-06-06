@@ -17,7 +17,7 @@ async function runDataCollection() {
     return new Promise((resolve, reject) => {
         // Get the correct path to the refactored Python script
         const scriptPath = path.join(__dirname, 'collectDB', 'scripts', 'collect_data_refactored.py');
-        //const scriptPath = path.join(__dirname,'collect_data.py');
+
 
         // Arguments depend on which script we're using
         let args;
